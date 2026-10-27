@@ -1,0 +1,26 @@
+name: Validar MarketPreço
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Configurar Bun
+        uses: oven-sh/setup-bun@v2
+      - name: Instalar dependências
+        run: bun install --frozen-lockfile
+      - name: TypeScript
+        run: bunx tsc --noEmit
+      - name: Testes unitários
+        run: bun run test
+      - name: Build
+        run: bun run build
