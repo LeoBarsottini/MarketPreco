@@ -28,7 +28,8 @@ React 19, TypeScript, Tailwind CSS, shadcn/ui, TanStack Router/Query, Supabase e
 - histórico gráfico real por produto e supermercado, com períodos de 30/90/365 dias e indicadores mínimo/máximo/último;
 - captura opcional de foto da etiqueta com OCR no navegador e sugestão de preço para confirmação manual;
 - comparação exata de produtos, com cobertura explícita da lista e uso do preço mais recente;
-- políticas RLS para segregação das listas e dados dos usuários.
+- políticas RLS para segregação das listas e dados dos usuários;
+- salvamento transacional e idempotente de itens/preços, com repetição segura de requisições.
 
 **Importante:** funcionalidades implementadas no código não significam que todos os fluxos foram testados de ponta a ponta em dispositivos reais. Consultar o resultado mais recente no [GitHub Actions](https://github.com/LeoBarsottini/MarketPreco/actions).
 
@@ -69,6 +70,13 @@ A função `public_price_history_for_product` é definida em
 Ela já foi aplicada ao banco Lovable Cloud deste projeto; para outros ambientes Supabase,
 a migração precisa ser aplicada antes de usar o gráfico. Somente usuários autenticados
 podem executá-la. Retorna até 500 observações, omitindo dados pessoais dos autores.
+
+A gravação transacional do carrinho usa a função `add_shopping_item_atomic`,
+definida em `supabase/migrations/20261027190000_atomic_cart.sql`.
+A migração foi enviada à base Lovable Cloud. Sua integridade é testada
+em um PostgreSQL 16 temporário pelo [GitHub Actions](https://github.com/LeoBarsottini/MarketPreco/actions)
+(sem criar preços falsos na produção). Ela utiliza bloqueio de linha por lista,
+registro de operações e IDs de requisição para evitar duplicações em tentativas repetidas.
 
 Os cenários de aceitação manual estão em [docs/QA-MVP.md](docs/QA-MVP.md).
 Uma compilação aprovada não comprova a execução ponta a ponta com autenticação e câmera.
