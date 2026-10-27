@@ -254,10 +254,15 @@ function PriceStep({ store, product, listId, onDone }: { store: Store; product: 
         }
         throw new Error(error.message);
       }
-      if (!data?.length || !data[0]?.item_id) {
+      const rows = data as Array<{
+        item_id: string;
+        observation_id: string | null;
+        replayed: boolean;
+      }> | null;
+      if (!rows?.[0]?.item_id) {
         throw new Error("O servidor não confirmou o salvamento. Tente novamente.");
       }
-      return data[0];
+      return rows[0];
     },
     onSuccess: () => {
       pendingCommand.current = null;
