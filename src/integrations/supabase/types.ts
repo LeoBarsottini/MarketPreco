@@ -336,6 +336,28 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      report_price_observation: {
+        Args: { _observation_id: string; _reason: string; _details?: string | null }
+        Returns: string
+      }
+      pending_price_reports: {
+        Args: Record<string, never>
+        Returns: {
+          report_id: string
+          observation_id: string
+          reason: string
+          details: string | null
+          created_at: string
+          store_name: string
+          product_name: string
+          reported_price: number
+          observed_at: string
+        }[]
+      }
+      review_price_report: {
+        Args: { _report_id: string; _decision: string }
+        Returns: boolean
+      }
       add_shopping_item_atomic: {
         Args: {
           _operation_id: string
