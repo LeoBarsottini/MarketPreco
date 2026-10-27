@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Progress } from "@/components/ui/progress";
 
 export const Route = createFileRoute("/_authenticated/comparar")({
-  head: () => ({ meta: [{ title: "Comparar — Preço Certo" }, { name: "description", content: "Compare o custo da sua lista entre supermercados." }, { property: "og:title", content: "Comparar — Preço Certo" }, { property: "og:description", content: "Compare o custo da sua lista entre supermercados." }] }),
+  head: () => ({ meta: [{ title: "Comparar — MarketPreço" }, { name: "description", content: "Compare o custo da sua lista entre supermercados." }, { property: "og:title", content: "Comparar — MarketPreço" }, { property: "og:description", content: "Compare o custo da sua lista entre supermercados." }] }),
   component: ComparePage,
 });
 

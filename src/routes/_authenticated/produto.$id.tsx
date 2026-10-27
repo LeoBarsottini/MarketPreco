@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, Plus } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/produto/$id")({
-  head: () => ({ meta: [{ title: "Produto — Preço Certo" }, { name: "description", content: "Preços deste produto por supermercado." }, { property: "og:title", content: "Produto — Preço Certo" }, { property: "og:description", content: "Preços deste produto por supermercado." }] }),
+  head: () => ({ meta: [{ title: "Produto — MarketPreço" }, { name: "description", content: "Preços deste produto por supermercado." }, { property: "og:title", content: "Produto — MarketPreço" }, { property: "og:description", content: "Preços deste produto por supermercado." }] }),
   component: ProductPage,
 });
 
