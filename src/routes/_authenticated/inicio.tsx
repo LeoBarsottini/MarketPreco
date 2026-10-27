@@ -58,24 +58,32 @@ function Home() {
 
   return (
     <>
-      <header className="mb-6 flex items-center justify-between gap-3">
-        <div>
-          <p className="text-sm text-muted-foreground">Olá{user.user_metadata?.["display_name"] ? `, ${user.user_metadata["display_name"]}` : ""}!</p>
-          <h1 className="text-2xl font-extrabold text-[#12304f] dark:text-foreground sm:text-3xl">Bem-vindo ao MarketPreço</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Compare, economize e escolha melhor.</p>
+      <section className="relative mb-6 overflow-hidden rounded-[22px] bg-gradient-to-br from-[#0d3977] via-[#09539b] to-[#064d90] px-5 py-9 text-white shadow-lg sm:px-9 sm:py-11">
+        <span aria-hidden="true" className="pointer-events-none absolute -right-12 -top-16 h-60 w-60 rounded-full border-[55px] border-white/5" />
+        <span aria-hidden="true" className="pointer-events-none absolute -bottom-32 -left-20 h-64 w-64 rounded-full border-[55px] border-white/5" />
+        <div className="relative">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <span className="text-sm text-white/80">Olá{user.user_metadata?.["display_name"] ? `, ${user.user_metadata["display_name"]}` : ""}!</span>
+            <Button variant="outline" size="sm" onClick={() => void signOut()} disabled={signingOut} className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white">
+              <LogOut className="h-4 w-4" /> {signingOut ? "Saindo…" : "Sair"}
+            </Button>
+          </div>
+          <h1 className="max-w-3xl text-3xl font-extrabold leading-tight sm:text-4xl lg:text-[42px]">
+            Encontre os melhores preços <span className="text-[#6be48a]">nos supermercados da sua região</span>
+          </h1>
+          <p className="mt-3 text-sm text-white/80 sm:text-base">Pesquise produtos, compare preços e economize na sua próxima compra.</p>
+          <form className="relative mt-6 flex flex-col gap-2 rounded-xl bg-white p-2 sm:flex-row" onSubmit={(e) => { e.preventDefault(); navigate({ to: "/mapa", search: { busca: search.trim() } }); }}>
+            <div className="relative min-w-0 flex-1">
+              <Search className="pointer-events-none absolute left-3 top-3 h-5 w-5 text-[#46647f]" aria-hidden="true" />
+              <Input value={search} onChange={(e) => setSearch(e.target.value)}
+                aria-label="Pesquisar supermercado, bairro ou cidade"
+                placeholder="Pesquisar supermercado, bairro ou cidade..."
+                className="h-11 border-0 bg-white pl-10 text-[#12304f] shadow-none focus-visible:ring-0" />
+            </div>
+            <Button type="submit" className="h-11 rounded-lg bg-[#35b75e] px-8 font-bold text-white hover:bg-[#269e50]">Pesquisar</Button>
+          </form>
         </div>
-        <Button variant="outline" size="sm" onClick={() => void signOut()} disabled={signingOut} aria-label="Sair da conta">
-          <LogOut className="h-4 w-4" aria-hidden="true" /> {signingOut ? "Saindo…" : "Sair"}
-        </Button>
-      </header>
-      <form className="relative mb-6" onSubmit={(e) => { e.preventDefault(); window.location.assign(`/mapa?busca=${encodeURIComponent(search.trim())}`); }}>
-        <Search className="pointer-events-none absolute left-4 top-3.5 h-5 w-5 text-[#075aab]" aria-hidden="true" />
-        <Input value={search} onChange={(e) => setSearch(e.target.value)}
-          aria-label="Pesquisar produtos e supermercados"
-          placeholder="Buscar supermercado, bairro ou cidade..."
-          className="h-12 rounded-xl border-[#d8e3ef] bg-white pl-12 shadow-sm" />
-        <Button type="submit" size="sm" className="absolute right-1.5 top-1.5 h-9 bg-[#075aab]">Buscar</Button>
-      </form>
+      </section>
       <section aria-label="Acessos rápidos" className="mb-8">
         <h2 className="mb-3 text-lg font-bold text-[#12304f] dark:text-foreground">O que você quer fazer?</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-3">
@@ -87,12 +95,12 @@ function Home() {
             { to: "/mapa" as const, label: "Supermercados", caption: "Ver unidades cadastradas", icon: Store },
             { to: "/lista" as const, label: "Histórico", caption: "Suas compras anteriores", icon: History },
           ].map(({ to, label, caption, icon: Icon }) => (
-            <Link key={label} to={to} className="group rounded-2xl border border-[#e4edf7] bg-card p-4 text-center shadow-card transition-all hover:-translate-y-0.5 hover:border-[#075aab]/40 hover:shadow-md">
-              <span className="mx-auto mb-2 grid h-12 w-12 place-items-center rounded-xl bg-[#e9f3ff] text-[#075aab] group-hover:bg-[#d9ebff]">
+            <Link key={label} to={to} className="group relative min-h-44 rounded-2xl border border-[#dce8f5] bg-card p-5 text-left shadow-card transition-all hover:-translate-y-0.5 hover:border-[#075aab]/40 hover:shadow-md">
+              <span className="mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-[#e9f3ff] text-[#075aab] group-hover:bg-[#d9ebff]">
                 <Icon className="h-6 w-6" aria-hidden="true" />
               </span>
-              <span className="block text-sm font-bold text-[#12304f] dark:text-foreground">{label}</span>
-              <span className="mt-1 block text-xs text-muted-foreground">{caption}</span>
+              <span className="block text-base font-bold text-[#12304f] dark:text-foreground">{label}</span>
+              <span className="mt-2 block max-w-[15rem] text-sm text-muted-foreground">{caption}</span><ArrowRight className="absolute bottom-5 right-5 h-4 w-4 text-[#075aab]" aria-hidden="true" />
             </Link>
           ))}
         </div>
