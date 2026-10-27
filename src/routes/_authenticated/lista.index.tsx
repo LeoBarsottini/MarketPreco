@@ -56,7 +56,14 @@ function ListsPage() {
   );
 }
 
-type L = NonNullable<ReturnType<typeof listsQuery>["queryFn"]> extends (...a: never[]) => Promise<infer R> ? R extends (infer X)[] ? X : never : never;
+type L = {
+  id: string;
+  name: string;
+  budget: number | null;
+  completed_at: string | null;
+  stores: { name: string } | null;
+  shopping_list_items: Array<{ quantity: number; unit_price: number | null; checked: boolean }>;
+};
 
 function ListCard({ l }: { l: L }) {
   const t = computeTotals(l.shopping_list_items.map((i) => ({ quantity: Number(i.quantity), unit_price: i.unit_price == null ? null : Number(i.unit_price) })), l.budget == null ? null : Number(l.budget));

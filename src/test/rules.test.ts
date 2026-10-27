@@ -71,8 +71,8 @@ describe("comparação entre lojas", () => {
         { store_id: "mercado", store_name: "Mercado", price: 4.5, observed_at: "2026-10-26T12:00:00Z" },
       ] },
     );
-    expect(result[0].total).toBe(9);
-    expect(result[0].coverage).toBe(1);
+    expect(result[0]?.total).toBe(9);
+    expect(result[0]?.coverage).toBe(1);
   });
 
   it("consolida produtos repetidos e não soma preços inválidos", () => {

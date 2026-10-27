@@ -61,7 +61,7 @@ function ListPage() {
   });
 
   if (isLoading) return <p className="text-sm text-muted-foreground">Carregando…</p>;
-  if (error || !data) return <p className="text-sm text-destructive">Lista não encontrada.</p>;
+  if (error || !data || !data.list) return <p className="text-sm text-destructive">Lista não encontrada.</p>;
   const { list, items } = data;
   const budget = list.budget == null ? null : Number(list.budget);
   const t = computeTotals(items.map((i) => ({ quantity: Number(i.quantity), unit_price: i.unit_price == null ? null : Number(i.unit_price), checked: i.checked })), budget);

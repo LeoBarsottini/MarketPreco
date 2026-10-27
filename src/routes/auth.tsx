@@ -39,13 +39,14 @@ function AuthPage() {
     setBusy(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setBusy(false);
-    if (error) return toast.error("E-mail ou senha inválidos.");
+    if (error) { toast.error("E-mail ou senha inválidos."); return; }
     navigate({ to: "/inicio", replace: true });
+    return;
   }
 
   async function signUp(e: React.FormEvent) {
     e.preventDefault();
-    if (password.length < 8) return toast.error("A senha precisa ter ao menos 8 caracteres.");
+    if (password.length < 8) { toast.error("A senha precisa ter ao menos 8 caracteres."); return; }
     setBusy(true);
     const { error } = await supabase.auth.signUp({
       email,
@@ -53,15 +54,17 @@ function AuthPage() {
       options: { emailRedirectTo: window.location.origin + "/inicio", data: { display_name: name } },
     });
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setSent(true);
+    return;
   }
 
   async function google() {
     const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
-    if (r.error) return toast.error("Não foi possível entrar com Google.");
+    if (r.error) { toast.error("Não foi possível entrar com Google."); return; }
     if (r.redirected) return;
     navigate({ to: "/inicio", replace: true });
+    return;
   }
 
   return (
