@@ -34,6 +34,23 @@
 | QA-19 | Moderador aceita uma denúncia | Preço deixa de aparecer em produto, mapa, comparação e histórico |
 | QA-20 | Moderador rejeita denúncia | Preço permanece consultável |
 
+## Primeira rodada de testes manuais — 27/10/2026
+
+O usuário confirmou que os testes realizados funcionaram e enviou capturas da prévia do Lovable no navegador desktop. **Observado nas telas:**
+
+| Fluxo | Resultado observado | Limites do que foi validado |
+| --- | --- | --- |
+| Acesso após login (parte de QA-01) | **Funcionou:** página Início do MarketPreço exibida | Não comprova criação de conta nem recuperação de senha |
+| Lista com produto e total (partes de QA-02, QA-04 e QA-06) | **Funcionou:** lista "Minha lista" exibiu leite integral Longavida 1 L, quantidade 1 e total R$ 4,00 | Não comprova persistência após atualização, orçamento ou quantidades fracionárias |
+| Cadastro de supermercado (parte de QA-03) | **Funcionou:** unidade "Teste de Mercado" aparece na lista e na página Mapa | Unidade foi salva **sem latitude/longitude**; não aparece como marcador no mapa interno |
+| Link para cartografia externa | **Funcionou:** OpenStreetMap abriu a pesquisa do endereço cadastrado | A pesquisa apresentou vários trechos possíveis da rua, sem confirmar a localização exata do estabelecimento |
+
+**Ponto de melhoria identificado:** endereço da unidade não foi geocodificado. A interface deve permitir escolher a posição exata no mapa ou confirmar uma sugestão, sem pressupor que resultados de rua equivalem à localização exata de uma loja.
+
+**Ainda pendentes:** testes de recarregar a lista, leitura por câmera, OCR, preços públicos, comparação, histórico, fluxo entre duas contas, moderação, navegação móvel e encerramento de sessão após a correção do botão.
+
+As capturas fornecidas pelo usuário foram usadas para conferência nesta conversa e **não foram publicadas no repositório**, para evitar expor informações desnecessárias.
+
 ## Verificação de segurança
 
 - Testar separação entre contas A e B em **shopping_lists**, **shopping_list_items** e observações não compartilhadas.
@@ -45,9 +62,9 @@
 
 1. Executar os casos QA-01 a QA-16 em navegador real, Android e iOS; guardar evidências e resultados.
 2. Investigar recuperação de senha e login social conforme configurações reais do provedor.
-3. Garantir operação transacional para salvar observação e item de compra: atualmente são chamadas separadas que podem falhar parcialmente.
+3. Validar em navegador real o salvamento atômico e idempotente de preço e item, já implementado e testado em PostgreSQL temporário.
 4. Validar concorrência em dois dispositivos reais. A função já serializa operações da mesma lista por bloqueio no banco e oferece idempotência por UUID.
 5. Aplicar a migração de moderação no banco real e habilitar `MODERATION_ENABLED` somente após conferência. Depois validar denúncias por usuários e análise por moderadores.
 6. Validar políticas do provedor de mapas/tiles e de OCR em condições de uso reais.
 
-**Estado:** roteiro criado; testes SQL isolados em GitHub Actions implementados. Execução manual desses cenários **ainda não realizada**.
+**Estado:** primeira rodada manual realizada parcialmente em desktop (detalhes acima); testes de segurança e SQL isolados em GitHub Actions implementados. Fluxos completos, celulares e segunda conta ainda pendentes.
