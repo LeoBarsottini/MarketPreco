@@ -24,10 +24,12 @@ React 19, TypeScript, Tailwind CSS, shadcn/ui, TanStack Router/Query, Supabase e
 - pesquisa e escaneamento de código de barras, com entrada manual;
 - listas de compras privadas, quantidades decimais, preços, orçamento e histórico;
 - observações de preço vinculadas à loja e ao produto, compartilhadas somente por confirmação;
+- mapa interativo de unidades, busca de produtos e preços colaborativos com data, filtros de 7/15/30 dias;
+- captura opcional de foto da etiqueta com OCR no navegador e sugestão de preço para confirmação manual;
 - comparação exata de produtos, com cobertura explícita da lista e uso do preço mais recente;
 - políticas RLS para segregação das listas e dados dos usuários.
 
-**Importante:** funcionalidades implementadas no código não significam que todos os fluxos foram testados de ponta a ponta em dispositivos reais. Consultar o resultado mais recente no [GitHub Actions](https://github.com/LeoBarsottini/pre-o-certo/actions).
+**Importante:** funcionalidades implementadas no código não significam que todos os fluxos foram testados de ponta a ponta em dispositivos reais. Consultar o resultado mais recente no [GitHub Actions](https://github.com/LeoBarsottini/MarketPreco/actions).
 
 ## Executar localmente
 
@@ -62,9 +64,9 @@ Não versionar chaves secretas, `service_role`, credenciais de usuário nem toke
 ## Próximas etapas
 
 - Validar autenticação e operações de compra de ponta a ponta;
-- implementar mapa interativo, OCR das etiquetas e gráficos de histórico;
-- melhorar a verificação colaborativa de preços, administração e denúncias;
+- validar no navegador o mapa interativo e a leitura OCR das etiquetas; criar gráficos de histórico;
+- melhorar verificação colaborativa de preços, administração e denúncias;
 - adicionar persistência local para visitantes e experiência PWA instalável;
 - ampliar testes em navegadores móveis e segurança do backend.
 
-**Nome exibido:** MarketPreço. **Nome técnico:** `marketpreco`. O nome do repositório no GitHub ainda depende da alteração nas configurações do repositório.
+**Nome exibido:** MarketPreço. **Nome técnico:** `marketpreco`. **Repositório:** `LeoBarsottini/MarketPreco`.
