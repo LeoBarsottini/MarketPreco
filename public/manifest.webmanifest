@@ -1,0 +1,19 @@
+{
+  "name": "MarketPreço — Compare preços de supermercados",
+  "short_name": "MarketPreço",
+  "description": "Registre preços, organize suas compras e compare supermercados.",
+  "lang": "pt-BR",
+  "start_url": "/inicio",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#075aab",
+  "icons": [
+    {
+      "src": "/marketpreco-logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
