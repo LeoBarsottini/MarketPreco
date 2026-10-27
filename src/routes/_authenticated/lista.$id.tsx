@@ -132,7 +132,7 @@ function ListPage() {
         </AlertDialog>
       </div>
 
-      <AddItemDialog open={adding} onOpenChange={setAdding} listId={id} defaultStoreId={list.store_id ?? items.at(-1)?.store_id} />
+      <AddItemDialog open={adding} onOpenChange={setAdding} listId={id} defaultStoreId={list.store_id ?? items.at(-1)?.store_id ?? null} />
       <EditListDialog open={editingList} onOpenChange={setEditingList} list={list} onSaved={invalidate} />
       {editItem && <EditItemDialog item={editItem} onClose={() => setEditItem(null)} onSaved={invalidate} />}
     </>
