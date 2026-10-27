@@ -25,6 +25,7 @@ React 19, TypeScript, Tailwind CSS, shadcn/ui, TanStack Router/Query, Supabase e
 - listas de compras privadas, quantidades decimais, preços, orçamento e histórico;
 - observações de preço vinculadas à loja e ao produto, compartilhadas somente por confirmação;
 - mapa interativo de unidades, busca de produtos e preços colaborativos com data, filtros de 7/15/30 dias;
+- histórico gráfico real por produto e supermercado, com períodos de 30/90/365 dias e indicadores mínimo/máximo/último;
 - captura opcional de foto da etiqueta com OCR no navegador e sugestão de preço para confirmação manual;
 - comparação exata de produtos, com cobertura explícita da lista e uso do preço mais recente;
 - políticas RLS para segregação das listas e dados dos usuários.
@@ -61,10 +62,21 @@ VITE_SUPABASE_PUBLISHABLE_KEY=CHAVE_PUBLICAVEL
 
 Não versionar chaves secretas, `service_role`, credenciais de usuário nem tokens de acesso. Manter as políticas de Row Level Security ativas.
 
+## Migração do histórico
+
+A função `public_price_history_for_product` é definida em
+`supabase/migrations/20261027180000_price_history.sql`.
+Ela já foi aplicada ao banco Lovable Cloud deste projeto; para outros ambientes Supabase,
+a migração precisa ser aplicada antes de usar o gráfico. Somente usuários autenticados
+podem executá-la. Retorna até 500 observações, omitindo dados pessoais dos autores.
+
+Os cenários de aceitação manual estão em [docs/QA-MVP.md](docs/QA-MVP.md).
+Uma compilação aprovada não comprova a execução ponta a ponta com autenticação e câmera.
+
 ## Próximas etapas
 
 - Validar autenticação e operações de compra de ponta a ponta;
-- validar no navegador o mapa interativo e a leitura OCR das etiquetas; criar gráficos de histórico;
+- validar no navegador o mapa interativo, a leitura OCR das etiquetas e os gráficos históricos;
 - melhorar verificação colaborativa de preços, administração e denúncias;
 - adicionar persistência local para visitantes e experiência PWA instalável;
 - ampliar testes em navegadores móveis e segurança do backend.
