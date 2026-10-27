@@ -105,3 +105,34 @@ BEGIN
   END IF;
 END
 $do$;
+
+-- Rejeitar uma denúncia deixa uma nova observação válida visível.
+DO $do$
+DECLARE
+  v_owner uuid := '11111111-1111-4111-8111-111111111111';
+  v_moderator uuid := '22222222-2222-4222-8222-222222222222';
+  v_regular uuid := '88888888-1111-4888-8888-888888888888';
+  v_product uuid := '33333333-3333-4333-8333-333333333333';
+  v_store uuid := '44444444-4444-4444-8444-444444444444';
+  v_obs uuid;
+  v_report uuid;
+  v_count int;
+BEGIN
+  PERFORM set_config('request.jwt.claim.sub',v_owner::text,true);
+  INSERT INTO public.price_observations(user_id, product_id, store_id, price, observed_at, source, user_confirmed, is_public)
+  VALUES(v_owner,v_product,v_store,12.50,now(),'manual',true,true)
+  RETURNING id INTO v_obs;
+
+  PERFORM set_config('request.jwt.claim.sub',v_regular::text,true);
+  v_report := public.report_price_observation(v_obs,'expired',null);
+  PERFORM set_config('request.jwt.claim.sub',v_moderator::text,true);
+  PERFORM public.review_price_report(v_report,'rejected');
+  SELECT count(*) INTO v_count FROM public.public_prices_for_product(v_product)
+    WHERE observation_id=v_obs;
+  IF v_count <> 1 THEN RAISE EXCEPTION 'Denúncia rejeitada ocultou preço válido'; END IF;
+
+  SELECT count(*) INTO v_count FROM public.public_price_history_for_product(v_product,30,null)
+    WHERE observation_id=v_obs;
+  IF v_count <> 1 THEN RAISE EXCEPTION 'Denúncia rejeitada excluiu preço do histórico'; END IF;
+END
+$do$;
