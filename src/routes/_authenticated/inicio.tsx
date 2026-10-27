@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { listsQuery, productLabel } from "@/lib/queries";
 import { computeTotals, formatBRL } from "@/lib/money";
@@ -20,6 +21,7 @@ function Home() {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [adding, setAdding] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
   const lists = useQuery(listsQuery());
   const recent = useQuery({
     queryKey: ["my-observations"],
@@ -36,10 +38,20 @@ function Home() {
   const active = lists.data?.filter((l) => l.status === "active") ?? [];
 
   async function signOut() {
-    await qc.cancelQueries();
-    qc.clear();
-    await supabase.auth.signOut();
-    navigate({ to: "/auth", replace: true });
+    if (signingOut) return;
+    setSigningOut(true);
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        toast.error("Não foi possível sair da conta. Tente novamente.");
+        return;
+      }
+      await qc.cancelQueries();
+      qc.clear();
+      await navigate({ to: "/auth", replace: true });
+    } finally {
+      setSigningOut(false);
+    }
   }
 
   return (
@@ -49,7 +61,7 @@ function Home() {
           <p className="text-sm text-muted-foreground">Olá{user.user_metadata?.["display_name"] ? `, ${user.user_metadata["display_name"]}` : ""}</p>
           <h1 className="text-2xl font-bold">MarketPreço</h1>
         </div>
-        <Button variant="ghost" size="icon" onClick={signOut} aria-label="Sair"><LogOut className="h-4 w-4" /></Button>
+        <Button variant="outline" size="sm" onClick={() => void signOut()} disabled={signingOut} aria-label="Sair da conta"><LogOut className="h-4 w-4" aria-hidden="true" /> {signingOut ? "Saindo…" : "Sair"}</Button>
       </header>
 
       <div className="mb-6 grid grid-cols-2 gap-3">
