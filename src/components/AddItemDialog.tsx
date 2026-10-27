@@ -100,6 +100,8 @@ export function AddItemDialog({
               qc.invalidateQueries({ queryKey: ["list", targetList] });
               qc.invalidateQueries({ queryKey: ["lists"] });
               qc.invalidateQueries({ queryKey: ["prices", product.id] });
+              qc.invalidateQueries({ queryKey: ["price-history", product.id] });
+              qc.invalidateQueries({ queryKey: ["compare"] });
               onOpenChange(false);
             }}
           />
