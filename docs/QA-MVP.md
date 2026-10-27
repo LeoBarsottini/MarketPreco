@@ -29,6 +29,10 @@
 | QA-14 | Negar câmera ou desligar conexão durante OCR | Mensagem de erro clara e preenchimento manual continua possível |
 | QA-15 | Comparar lista com parte dos preços ausentes | Cobertura e produtos faltantes visíveis, sem declarar economia garantida |
 | QA-16 | Consultar histórico com base ainda vazia | Mensagem de ausência de dados, sem pontos ou preços inventados |
+| QA-17 | Conta B denuncia preço público de A | Denúncia registrada sem expor autor; duplicatas não criam novas denúncias |
+| QA-18 | Conta comum tenta acessar fila ou revisar denúncia | Operação rejeitada pelo servidor |
+| QA-19 | Moderador aceita uma denúncia | Preço deixa de aparecer em produto, mapa, comparação e histórico |
+| QA-20 | Moderador rejeita denúncia | Preço permanece consultável |
 
 ## Verificação de segurança
 
@@ -43,7 +47,7 @@
 2. Investigar recuperação de senha e login social conforme configurações reais do provedor.
 3. Garantir operação transacional para salvar observação e item de compra: atualmente são chamadas separadas que podem falhar parcialmente.
 4. Validar concorrência em dois dispositivos reais. A função já serializa operações da mesma lista por bloqueio no banco e oferece idempotência por UUID.
-5. Validar moderação de denúncias, duplicação de cadastros e origem/confiança das observações.
+5. Aplicar a migração de moderação no banco real e habilitar `MODERATION_ENABLED` somente após conferência. Depois validar denúncias por usuários e análise por moderadores.
 6. Validar políticas do provedor de mapas/tiles e de OCR em condições de uso reais.
 
 **Estado:** roteiro criado; testes SQL isolados em GitHub Actions implementados. Execução manual desses cenários **ainda não realizada**.
