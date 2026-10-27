@@ -89,12 +89,9 @@ a moderadores e administradores e ocultação de valores somente após revisão.
 A decisão de rejeitar uma denúncia mantém o valor disponível.
 Os preços ocultados não aparecem no mapa, na comparação e no histórico.
 
-**Atenção:** a migração AINDA NÃO foi aplicada ao banco Lovable Cloud
-porque a integração informou um limite temporário de consultas do plano.
-A interface está intencionalmente desabilitada por `MODERATION_ENABLED = false`
-em `src/lib/feature-flags.ts`. Após aplicar e confirmar a migração no banco
-real, alterar o valor para `true`. Não ativar antes de confirmar as funções
-`report_price_observation`, `pending_price_reports` e `review_price_report`.
+**Situação atual:** a migração foi aplicada ao banco Lovable Cloud em 27/10/2026. As funções `report_price_observation`, `pending_price_reports` e `review_price_report` estão disponíveis, os privilégios de execução foram conferidos e a interface está habilitada por `MODERATION_ENABLED = true`.
+
+**Pendência administrativa:** ainda não existe conta com papel de administrador ou moderador. Para analisar denúncias, o proprietário precisa aprovar explicitamente a concessão desse papel a uma conta autorizada.
 
 A migração é testada em um PostgreSQL efêmero pelo GitHub Actions; ela não
 cria observações de teste no banco principal.
