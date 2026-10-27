@@ -81,11 +81,29 @@ registro de operações e IDs de requisição para evitar duplicações em tenta
 Os cenários de aceitação manual estão em [docs/QA-MVP.md](docs/QA-MVP.md).
 Uma compilação aprovada não comprova a execução ponta a ponta com autenticação e câmera.
 
+## Moderação de preços (preparada, não ativada)
+
+A migração `supabase/migrations/20261027193000_price_moderation.sql`
+adiciona denúncias com deduplicação por usuário/observação, fila restrita
+a moderadores e administradores e ocultação de valores somente após revisão.
+A decisão de rejeitar uma denúncia mantém o valor disponível.
+Os preços ocultados não aparecem no mapa, na comparação e no histórico.
+
+**Atenção:** a migração AINDA NÃO foi aplicada ao banco Lovable Cloud
+porque a integração informou um limite temporário de consultas do plano.
+A interface está intencionalmente desabilitada por `MODERATION_ENABLED = false`
+em `src/lib/feature-flags.ts`. Após aplicar e confirmar a migração no banco
+real, alterar o valor para `true`. Não ativar antes de confirmar as funções
+`report_price_observation`, `pending_price_reports` e `review_price_report`.
+
+A migração é testada em um PostgreSQL efêmero pelo GitHub Actions; ela não
+cria observações de teste no banco principal.
+
 ## Próximas etapas
 
 - Validar autenticação e operações de compra de ponta a ponta;
 - validar no navegador o mapa interativo, a leitura OCR das etiquetas e os gráficos históricos;
-- melhorar verificação colaborativa de preços, administração e denúncias;
+- ativar migração de moderação no banco real e validar análise de denúncias; melhorar prevenção de abuso;
 - adicionar persistência local para visitantes e experiência PWA instalável;
 - ampliar testes em navegadores móveis e segurança do backend.
 
