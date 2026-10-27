@@ -59,7 +59,7 @@ function Home() {
       <header className="mb-5 flex items-center justify-between">
         <div>
           <p className="text-sm text-muted-foreground">Olá{user.user_metadata?.["display_name"] ? `, ${user.user_metadata["display_name"]}` : ""}</p>
-          <h1 className="text-2xl font-bold">MarketPreço</h1>
+          <h1 className="text-2xl font-bold tracking-tight"><span className="text-[#063d46] dark:text-[#d1f3eb]">Market</span><span className="text-[#08a16f]">Preço</span></h1>
         </div>
         <Button variant="outline" size="sm" onClick={() => void signOut()} disabled={signingOut} aria-label="Sair da conta"><LogOut className="h-4 w-4" aria-hidden="true" /> {signingOut ? "Saindo…" : "Sair"}</Button>
       </header>
