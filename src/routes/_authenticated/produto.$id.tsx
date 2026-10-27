@@ -7,6 +7,7 @@ import { formatBRL } from "@/lib/money";
 import { AddItemDialog } from "@/components/AddItemDialog";
 import { PriceHistory } from "@/components/PriceHistory";
 import { PriceReportDialog } from "@/components/PriceReportDialog";
+import { MODERATION_ENABLED } from "@/lib/feature-flags";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, Plus } from "lucide-react";
 
@@ -61,7 +62,7 @@ function ProductPage() {
             </span>
             <span className="flex shrink-0 flex-col items-end gap-1">
               <span className="font-semibold tabular">{formatBRL(Number(p.price))}</span>
-              {!p.is_mine && (
+              {MODERATION_ENABLED && !p.is_mine && (
                 <Button
                   type="button"
                   variant="ghost"
@@ -78,7 +79,7 @@ function ProductPage() {
         ))}
       </ul>
       <PriceHistory productId={id} />
-      <PriceReportDialog observationId={reportedObservationId} onClose={() => setReportedObservationId(null)} />
+      {MODERATION_ENABLED && <PriceReportDialog observationId={reportedObservationId} onClose={() => setReportedObservationId(null)} />}
       <AddItemDialog open={adding} onOpenChange={setAdding} initialProduct={product.data} />
     </>
   );
