@@ -52,6 +52,17 @@ export const productPricesQuery = (productId: string) =>
       must(await supabase.rpc("public_prices_for_product", { _product_id: productId })),
   });
 
+export const priceHistoryQuery = (productId: string, periodDays: 30 | 90 | 365) =>
+  queryOptions({
+    queryKey: ["price-history", productId, periodDays],
+    queryFn: async () =>
+      must(await supabase.rpc("public_price_history_for_product", {
+        _product_id: productId,
+        _days: periodDays,
+      })),
+    staleTime: 60_000,
+  });
+
 export function productLabel(p: Pick<Product, "name" | "brand" | "package_size" | "package_unit">) {
   const pack = p.package_size ? ` ${String(p.package_size).replace(".", ",").replace(/,?0+$/, "")}${p.package_unit ?? ""}` : "";
   return `${p.name}${p.brand ? " · " + p.brand : ""}${pack}`;

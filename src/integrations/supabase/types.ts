@@ -336,6 +336,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      public_price_history_for_product: {
+        Args: { _product_id: string; _days?: number; _store_id?: string | null }
+        Returns: {
+          observation_id: string
+          store_id: string
+          store_name: string
+          store_city: string
+          price: number
+          observed_at: string
+          is_mine: boolean
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
