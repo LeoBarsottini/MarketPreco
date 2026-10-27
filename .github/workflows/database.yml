@@ -47,3 +47,7 @@ jobs:
         run: psql -X -v ON_ERROR_STOP=1 -f supabase/migrations/20261027190000_atomic_cart.sql
       - name: Validar acesso, idempotência e integridade
         run: psql -X -v ON_ERROR_STOP=1 -f src/test/sql/cart-assertions.sql
+      - name: Aplicar migração de denúncias e moderação
+        run: psql -X -v ON_ERROR_STOP=1 -f supabase/migrations/20261027193000_price_moderation.sql
+      - name: Validar privilégios e bloqueio de preços denunciados
+        run: psql -X -v ON_ERROR_STOP=1 -f src/test/sql/moderation-assertions.sql
