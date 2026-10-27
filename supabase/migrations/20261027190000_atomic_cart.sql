@@ -165,3 +165,6 @@ REVOKE ALL ON FUNCTION public.add_shopping_item_atomic(
 GRANT EXECUTE ON FUNCTION public.add_shopping_item_atomic(
   uuid, uuid, uuid, uuid, numeric, numeric, timestamptz, text, boolean, boolean
 ) TO authenticated;
+
+-- Atualiza catálogo de funções exposto pelo PostgREST/Supabase após a migração.
+NOTIFY pgrst, 'reload schema';
