@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { LogOut, Plus, ScanBarcode } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/inicio")({
-  head: () => ({ meta: [{ title: "Início — Preço Certo" }, { name: "description", content: "Resumo das suas listas e preços registrados." }, { property: "og:title", content: "Início — Preço Certo" }, { property: "og:description", content: "Resumo das suas listas e preços registrados." }] }),
+  head: () => ({ meta: [{ title: "Início — MarketPreço" }, { name: "description", content: "Resumo das suas listas e preços registrados." }, { property: "og:title", content: "Início — MarketPreço" }, { property: "og:description", content: "Resumo das suas listas e preços registrados." }] }),
   component: Home,
 });
 
@@ -45,7 +45,7 @@ function Home() {
       <header className="mb-5 flex items-center justify-between">
         <div>
           <p className="text-sm text-muted-foreground">Olá{user.user_metadata?.display_name ? `, ${user.user_metadata.display_name}` : ""}</p>
-          <h1 className="text-2xl font-bold">Preço Certo</h1>
+          <h1 className="text-2xl font-bold">MarketPreço</h1>
         </div>
         <Button variant="ghost" size="icon" onClick={signOut} aria-label="Sair"><LogOut className="h-4 w-4" /></Button>
       </header>
