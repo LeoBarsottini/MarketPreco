@@ -8,7 +8,7 @@ import { ProductForm } from "@/components/ProductForm";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/escanear")({
-  head: () => ({ meta: [{ title: "Escanear — Preço Certo" }, { name: "description", content: "Leia o código de barras de um produto." }, { property: "og:title", content: "Escanear — Preço Certo" }, { property: "og:description", content: "Leia o código de barras de um produto." }] }),
+  head: () => ({ meta: [{ title: "Escanear — MarketPreço" }, { name: "description", content: "Leia o código de barras de um produto." }, { property: "og:title", content: "Escanear — MarketPreço" }, { property: "og:description", content: "Leia o código de barras de um produto." }] }),
   component: ScanPage,
 });
 
