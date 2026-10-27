@@ -25,7 +25,15 @@ function ProductPage() {
     },
   });
   const prices = useQuery(productPricesQuery(id));
-  const sorted = [...(prices.data ?? [])].sort((a, b) => Number(a.price) - Number(b.price));
+  // Uma loja pode ter várias observações: mostre a mais recente, não a mais barata antiga.
+  const latestByStore = new Map<string, NonNullable<typeof prices.data>[number]>();
+  for (const observation of prices.data ?? []) {
+    const previous = latestByStore.get(observation.store_id);
+    if (!previous || observation.observed_at > previous.observed_at) {
+      latestByStore.set(observation.store_id, observation);
+    }
+  }
+  const sorted = [...latestByStore.values()].sort((a, b) => Number(a.price) - Number(b.price));
 
   if (product.isLoading) return <p className="text-sm text-muted-foreground">Carregando…</p>;
   if (!product.data) return <p className="text-sm text-destructive">Produto não encontrado.</p>;
@@ -37,8 +45,8 @@ function ProductPage() {
       {product.data.barcode && <p className="text-sm text-muted-foreground tabular">EAN {product.data.barcode}</p>}
       <Button className="my-5 w-full" size="lg" onClick={() => setAdding(true)}><Plus className="h-4 w-4" /> Registrar preço e adicionar à lista</Button>
 
-      <h2 className="mb-1 font-semibold">Último preço por supermercado</h2>
-      <p className="mb-3 text-xs text-muted-foreground">Inclui seus registros e os compartilhados publicamente. Lojas sem registro não aparecem.</p>
+      <h2 className="mb-1 font-semibold">Último preço conhecido por supermercado</h2>
+      <p className="mb-3 text-xs text-muted-foreground">Inclui seus registros e os compartilhados publicamente. Lojas sem registro não aparecem. Os valores podem estar desatualizados.</p>
       {prices.isLoading && <p className="text-sm text-muted-foreground">Carregando…</p>}
       {sorted.length === 0 && !prices.isLoading && <p className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">Nenhum preço registrado para este produto.</p>}
       <ul className="space-y-2">
