@@ -336,6 +336,25 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_shopping_item_atomic: {
+        Args: {
+          _operation_id: string
+          _list_id: string
+          _product_id: string
+          _store_id: string
+          _quantity: number
+          _price?: number | null
+          _observed_at?: string | null
+          _source?: string
+          _confirmed?: boolean
+          _share?: boolean
+        }
+        Returns: {
+          item_id: string
+          observation_id: string | null
+          replayed: boolean
+        }[]
+      }
       public_price_history_for_product: {
         Args: { _product_id: string; _days?: number; _store_id?: string | null }
         Returns: {
