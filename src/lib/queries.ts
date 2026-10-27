@@ -33,7 +33,7 @@ export const listQuery = (id: string) =>
   queryOptions({
     queryKey: ["list", id],
     queryFn: async () => {
-      const list = must(await supabase.from("shopping_lists").select("*").eq("id", id).single());
+      const list = must(await supabase.from("shopping_lists").select("*").eq("id", id).single<ShoppingList>());
       const items = must(
         await supabase
           .from("shopping_list_items")
