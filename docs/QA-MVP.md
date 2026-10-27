@@ -42,8 +42,8 @@
 1. Executar os casos QA-01 a QA-16 em navegador real, Android e iOS; guardar evidências e resultados.
 2. Investigar recuperação de senha e login social conforme configurações reais do provedor.
 3. Garantir operação transacional para salvar observação e item de compra: atualmente são chamadas separadas que podem falhar parcialmente.
-4. Proteger concorrência na atualização de quantidades do mesmo item (atualmente leitura seguida de atualização).
+4. Validar concorrência em dois dispositivos reais. A função já serializa operações da mesma lista por bloqueio no banco e oferece idempotência por UUID.
 5. Validar moderação de denúncias, duplicação de cadastros e origem/confiança das observações.
 6. Validar políticas do provedor de mapas/tiles e de OCR em condições de uso reais.
 
-**Estado:** roteiro criado; execução manual desses cenários **ainda não realizada**.
+**Estado:** roteiro criado; testes SQL isolados em GitHub Actions implementados. Execução manual desses cenários **ainda não realizada**.
