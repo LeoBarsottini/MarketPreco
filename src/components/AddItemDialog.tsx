@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { BarcodeScanner } from "@/components/BarcodeScanner";
+import { PriceLabelOCR } from "@/components/PriceLabelOCR";
 import { StoreForm } from "@/components/StoreForm";
 import { ProductForm } from "@/components/ProductForm";
 import { listsQuery, productLabel, storesQuery, type Product, type Store } from "@/lib/queries";
@@ -210,15 +211,17 @@ export function ProductStep({ onPick }: { onPick: (p: Product) => void }) {
 }
 
 function PriceStep({ store, product, listId, onDone }: { store: Store; product: Product; listId: string; onDone: () => void }) {
-  const today = new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  const today = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
   const [qty, setQty] = useState("1");
   const [price, setPrice] = useState("");
+  const [priceSource, setPriceSource] = useState<"manual" | "ocr">("manual");
   const [date, setDate] = useState(today);
   const [confirmed, setConfirmed] = useState(false);
   const [share, setShare] = useState(false);
   const q = parseDecimal(qty);
   const p = price.trim() ? parseDecimal(price) : null;
-  const priceInvalid = price.trim() !== "" && (p == null || p <= 0);
+  const priceInvalid = price.trim() !== "" && (p == null || p <= 0 || p >= 100000);
   const sub = q && p ? lineSubtotal(q, p) : null;
 
   const save = useMutation({
@@ -229,7 +232,7 @@ function PriceStep({ store, product, listId, onDone }: { store: Store; product: 
       if (p != null) {
         const observedAt = date === today ? new Date().toISOString() : new Date(date + "T12:00:00").toISOString();
         const { error } = await supabase.from("price_observations").insert({
-          store_id: store.id, product_id: product.id, price: p, observed_at: observedAt, user_confirmed: true, is_public: share,
+          store_id: store.id, product_id: product.id, price: p, observed_at: observedAt, user_confirmed: true, is_public: share, source: priceSource,
         });
         if (error) throw error;
       }
@@ -274,8 +277,9 @@ function PriceStep({ store, product, listId, onDone }: { store: Store; product: 
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1"><Label>Quantidade</Label><Input inputMode="decimal" required value={qty} onChange={(e) => setQty(e.target.value)} /></div>
-        <div className="space-y-1"><Label>Preço unitário (R$)</Label><Input inputMode="decimal" placeholder="Sem preço" value={price} onChange={(e) => setPrice(e.target.value)} aria-invalid={priceInvalid} /></div>
+        <div className="space-y-1"><Label>Preço unitário (R$)</Label><Input inputMode="decimal" placeholder="Sem preço" value={price} onChange={(e) => { setPrice(e.target.value); setPriceSource("manual"); setConfirmed(false); }} aria-invalid={priceInvalid} /></div>
       </div>
+      <PriceLabelOCR onSelect={(value) => { setPrice(value); setPriceSource("ocr"); setConfirmed(false); }} />
       {p != null && !priceInvalid && (
         <div className="space-y-3 rounded-lg border p-3">
           <div className="space-y-1"><Label>Data em que viu o preço</Label><Input type="date" max={today} value={date} onChange={(e) => setDate(e.target.value)} /></div>
