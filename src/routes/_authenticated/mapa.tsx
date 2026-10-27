@@ -69,7 +69,7 @@ function validCoords(store: Store): store is LocatedStore {
     store.latitude >= -90 && store.latitude <= 90 && store.longitude >= -180 && store.longitude <= 180;
 }
 
-function StoreMap({ stores, prices }: { stores: LocatedStore[]; prices: ReadonlyMap<string, PriceRow> }) {
+function StoreMap({ stores, prices, productSelected }: { stores: LocatedStore[]; prices: ReadonlyMap<string, PriceRow>; productSelected: boolean }) {
   const element = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -89,8 +89,10 @@ function StoreMap({ stores, prices }: { stores: LocatedStore[]; prices: Readonly
       map.addControl(new lib.NavigationControl());
       for (const store of stores) {
         const price = prices.get(store.id);
-        const marker = new lib.Marker({ color: price ? "#26777c" : "#94a3b8" }).setLngLat([store.longitude, store.latitude]);
-        const description = price
+        const marker = new lib.Marker({ color: !productSelected || price ? "#26777c" : "#94a3b8" }).setLngLat([store.longitude, store.latitude]);
+        const description = !productSelected
+          ? `${store.name} — ${store.address}, ${store.city}`
+          : price
           ? `${store.name} — ${store.address}, ${store.city} — ${formatBRL(Number(price.price))} em ${priceDateLabel(price.observed_at)} (preço colaborativo, não auditado)`
           : `${store.name} — ${store.address}, ${store.city} — sem preço registrado para o produto selecionado`;
         const popup = new lib.Popup({ offset: 20 }).setText(description);
@@ -103,51 +105,217 @@ function StoreMap({ stores, prices }: { stores: LocatedStore[]; prices: Readonly
       }
     }).catch((e: unknown) => { if (!cancelled) setError(e instanceof Error ? e.message : "Mapa indisponível."); });
     return () => { cancelled = true; map?.remove(); };
-  }, [stores, prices]);
+  }, [stores, prices, productSelected]);
 
   return (
     <section aria-label="Mapa das unidades cadastradas" className="mb-5">
       {error && <p role="alert" className="mb-3 rounded-lg bg-warning p-3 text-sm text-warning-foreground">{error} A lista de endereços continua disponível abaixo.</p>}
       <div ref={element} className="h-[360px] w-full overflow-hidden rounded-xl border bg-muted sm:h-[480px]" />
-      <p className="mt-2 text-xs text-muted-foreground">Verde: preço disponível para o produto selecionado. Cinza: sem preço no período. Somente lojas com coordenadas aparecem no mapa. Cartografia por OpenFreeMap e OpenStreetMap.</p>
+      <p className="mt-2 text-xs text-muted-foreground">Quando um produto é selecionado: verde indica preço registrado e cinza indica falta de preço no período. Só lojas com coordenadas aparecem no mapa. Dados cartográficos: OpenFreeMap/OpenStreetMap.</p>
     </section>
   );
 }
 
+type ProductOption = Pick<Product, "id" | "name" | "brand" | "package_size" | "package_unit" | "barcode">;
+
 function MapPage() {
-  const { data, isLoading, error } = useQuery(storesQuery());
-  const [search, setSearch] = useState("");
-  const filtered = useMemo(() => {
-    const text = search.trim().toLocaleLowerCase("pt-BR");
-    return (data ?? []).filter((store) => !text || [store.name, store.chain, store.address, store.neighborhood, store.city, store.state]
-      .some((field) => field?.toLocaleLowerCase("pt-BR").includes(text)));
-  }, [data, search]);
-  const located = useMemo(() => filtered.filter(validCoords), [filtered]);
+  const stores = useQuery(storesQuery());
+  const [storeSearch, setStoreSearch] = useState("");
+  const [productSearch, setProductSearch] = useState("");
+  const [selectedProduct, setSelectedProduct] = useState<ProductOption | null>(null);
+  const [period, setPeriod] = useState<PriceAgeDays>(30);
+  const [onlyWithPrice, setOnlyWithPrice] = useState(false);
+
+  const productMatches = useQuery({
+    queryKey: ["map-product-search", productSearch.trim()],
+    enabled: !selectedProduct && productSearch.trim().length >= 2,
+    queryFn: async () => {
+      // Remove caracteres especiais dos filtros PostgREST.
+      const query = productSearch.trim().replace(/[^a-zA-Z0-9À-ÿ -]/g, " ").slice(0, 60).trim();
+      if (query.length < 2) return [] as ProductOption[];
+      const predicates = [
+        `name.ilike.%${query}%`,
+        `brand.ilike.%${query}%`,
+      ];
+      if (/^\d{8,14}$/.test(query)) predicates.push(`barcode.eq.${query}`);
+      const { data, error } = await supabase.from("products")
+        .select("id, name, brand, package_size, package_unit, barcode")
+        .or(predicates.join(","))
+        .order("name")
+        .limit(20);
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const pricesQuery = useQuery({
+    ...productPricesQuery(selectedProduct?.id ?? ""),
+    enabled: selectedProduct !== null,
+  });
+  const pricesByStore = useMemo(
+    () => latestPricesByStore(pricesQuery.data ?? [], period),
+    [pricesQuery.data, period],
+  );
+  const filteredStores = useMemo(() => {
+    const term = storeSearch.trim().toLocaleLowerCase("pt-BR");
+    return (stores.data ?? []).filter((store) =>
+      (!term || [store.name, store.chain, store.address, store.neighborhood, store.city, store.state]
+        .some((field) => field?.toLocaleLowerCase("pt-BR").includes(term))) &&
+      (!selectedProduct || !onlyWithPrice || pricesByStore.has(store.id)),
+    );
+  }, [stores.data, storeSearch, selectedProduct, onlyWithPrice, pricesByStore]);
+  const locatedStores = useMemo(() => filteredStores.filter(validCoords), [filteredStores]);
+
+  function clearProduct() {
+    setProductSearch("");
+    setSelectedProduct(null);
+    setOnlyWithPrice(false);
+  }
 
   return (
     <>
-      <PageHeader title="Mapa" subtitle="Unidades cadastradas pela comunidade." />
-      <div className="relative mb-4">
-        <Search aria-hidden="true" className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-        <Input className="pl-9" aria-label="Pesquisar supermercados" placeholder="Buscar supermercado, bairro ou cidade" value={search} onChange={(e) => setSearch(e.target.value)} />
+      <PageHeader title="Mapa" subtitle="Supermercados cadastrados e preços informados pela comunidade." />
+      <div className="space-y-4">
+        <section className="rounded-xl border bg-card p-4">
+          <label htmlFor="map-product-search" className="mb-2 block text-sm font-semibold">Qual produto deseja consultar?</label>
+          <div className="flex gap-2">
+            <Input
+              id="map-product-search"
+              value={productSearch}
+              onChange={(event) => { setProductSearch(event.target.value); setSelectedProduct(null); }}
+              placeholder="Nome, marca ou código de barras"
+              aria-label="Pesquisar produto"
+            />
+            {selectedProduct && (
+              <Button variant="outline" size="icon" onClick={clearProduct} aria-label="Limpar produto">
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+          {!selectedProduct && productSearch.trim().length >= 2 && (
+            <div className="mt-2">
+              {productMatches.isLoading && <p className="text-sm text-muted-foreground">Buscando produtos…</p>}
+              {productMatches.isError && <p role="alert" className="text-sm text-destructive">Não foi possível buscar os produtos.</p>}
+              {productMatches.data?.length === 0 && <p className="text-sm text-muted-foreground">Nenhum produto cadastrado com esse nome ou código.</p>}
+              <ul className="max-h-48 space-y-1 overflow-y-auto">
+                {productMatches.data?.map((product) => (
+                  <li key={product.id}>
+                    <button
+                      type="button"
+                      onClick={() => { setSelectedProduct(product); setProductSearch(productLabel(product)); }}
+                      className="w-full rounded-md border p-3 text-left text-sm hover:bg-muted"
+                    >
+                      {productLabel(product)}
+                      {product.barcode && <span className="block text-xs text-muted-foreground">{product.barcode}</span>}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {selectedProduct && (
+            <div className="mt-3 grid gap-3 sm:grid-cols-[auto_1fr] sm:items-center">
+              <label htmlFor="price-period" className="text-sm font-medium">Registros dos últimos</label>
+              <select
+                id="price-period"
+                className="h-10 rounded-md border bg-background px-3 text-sm"
+                value={period}
+                onChange={(event) => setPeriod(Number(event.target.value) as PriceAgeDays)}
+              >
+                <option value={7}>7 dias</option>
+                <option value={15}>15 dias</option>
+                <option value={30}>30 dias</option>
+                <option value={0}>Todo o histórico disponível</option>
+              </select>
+              <label className="flex items-center gap-2 text-sm sm:col-span-2">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 accent-primary"
+                  checked={onlyWithPrice}
+                  onChange={(event) => setOnlyWithPrice(event.target.checked)}
+                />
+                Mostrar somente supermercados com preço registrado no período
+              </label>
+            </div>
+          )}
+          {selectedProduct && (
+            <p className="mt-3 text-xs text-muted-foreground">
+              Preços colaborativos informados por usuários, sem verificação independente. Não são ofertas garantidas e podem mudar na loja.
+            </p>
+          )}
+        </section>
+        <div className="relative">
+          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" aria-hidden="true" />
+          <Input
+            className="pl-9"
+            value={storeSearch}
+            onChange={(event) => setStoreSearch(event.target.value)}
+            aria-label="Pesquisar supermercados"
+            placeholder="Filtrar supermercado, bairro ou cidade"
+          />
+        </div>
       </div>
-      {isLoading && <p className="mb-4 text-sm text-muted-foreground">Carregando supermercados…</p>}
-      {error && <p role="alert" className="mb-4 text-sm text-destructive">Não foi possível carregar os supermercados.</p>}
-      {located.length > 0 && <StoreMap stores={located} />}
-      {!isLoading && !error && filtered.length === 0 && <p className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">Nenhum supermercado encontrado para esta pesquisa. Registre uma unidade durante a compra para colaborar.</p>}
-      {filtered.length > 0 && <p className="mb-3 text-xs text-muted-foreground">{filtered.length} unidade(s) encontrada(s). {filtered.length - located.length} sem coordenadas no mapa.</p>}
+
+      {stores.isLoading && <p className="my-4 text-sm text-muted-foreground">Carregando supermercados…</p>}
+      {stores.error && <p role="alert" className="my-4 text-sm text-destructive">Não foi possível carregar as unidades.</p>}
+      {pricesQuery.isLoading && <p className="my-4 text-sm text-muted-foreground">Consultando preços do produto…</p>}
+      {pricesQuery.error && <p role="alert" className="my-4 text-sm text-destructive">Não foi possível consultar os preços. Tente novamente.</p>}
+
+      {locatedStores.length > 0 && (
+        <StoreMap stores={locatedStores} prices={pricesByStore} productSelected={selectedProduct !== null} />
+      )}
+      {!stores.isLoading && !stores.error && locatedStores.length === 0 && filteredStores.length > 0 && (
+        <p className="my-4 rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
+          As unidades encontradas ainda não têm coordenadas cadastradas, mas seus endereços estão listados abaixo.
+        </p>
+      )}
+      {!stores.isLoading && !stores.error && filteredStores.length === 0 && !pricesQuery.isLoading && (
+        <p className="my-4 rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
+          Nenhum supermercado corresponde aos filtros escolhidos. Não existem preços suficientes para comparar essas unidades.
+        </p>
+      )}
+
+      {filteredStores.length > 0 && (
+        <p className="my-3 text-sm text-muted-foreground">
+          {filteredStores.length} unidade(s) encontrada(s); {filteredStores.length - locatedStores.length} sem coordenadas.
+        </p>
+      )}
       <ul className="space-y-2">
-        {filtered.map((store) => {
-          const query = validCoords(store) ? `${store.latitude},${store.longitude}` : `${store.address}, ${store.city}`;
+        {filteredStores.map((store) => {
+          const observation = selectedProduct ? pricesByStore.get(store.id) : undefined;
+          const addressQuery = validCoords(store)
+            ? `${store.latitude},${store.longitude}`
+            : `${store.address}, ${store.city}, ${store.state ?? ""}`;
           return (
             <li key={store.id} className="flex items-start gap-3 rounded-xl bg-card p-3 shadow-card">
-              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+              <MapPin className="mt-1 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
               <div className="min-w-0 flex-1">
                 <p className="font-medium">{store.name}</p>
-                <p className="text-xs text-muted-foreground">{store.address}{store.neighborhood ? `, ${store.neighborhood}` : ""} · {store.city}{store.state ? `/${store.state}` : ""}</p>
-                {!validCoords(store) && <p className="text-xs text-warning-foreground">Sem localização precisa cadastrada</p>}
+                <p className="text-xs text-muted-foreground">
+                  {store.address}{store.neighborhood ? `, ${store.neighborhood}` : ""} · {store.city}{store.state ? `/${store.state}` : ""}
+                </p>
+                {observation && (
+                  <p className="mt-2 text-sm">
+                    <strong className="text-primary">{formatBRL(Number(observation.price))}</strong>
+                    <span className="block text-xs text-muted-foreground">
+                      Visto em {priceDateLabel(observation.observed_at)} · {observation.is_mine ? "Seu registro" : "Registro comunitário"} · não auditado
+                    </span>
+                  </p>
+                )}
+                {selectedProduct && !observation && !pricesQuery.isLoading && (
+                  <p className="mt-1 text-xs text-muted-foreground">Sem preço registrado neste período.</p>
+                )}
+                {!validCoords(store) && <p className="text-xs text-warning-foreground">Sem coordenadas cadastradas</p>}
               </div>
-              <a className="text-primary" href={`https://www.openstreetmap.org/search?query=${encodeURIComponent(query)}`} target="_blank" rel="noopener noreferrer" aria-label={`Abrir ${store.name} no OpenStreetMap`}><ExternalLink className="h-4 w-4" /></a>
+              <a
+                className="shrink-0 text-primary"
+                href={`https://www.openstreetmap.org/search?query=${encodeURIComponent(addressQuery)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`Abrir ${store.name} no OpenStreetMap`}
+              >
+                <ExternalLink className="h-4 w-4" />
+              </a>
             </li>
           );
         })}
