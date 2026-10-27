@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Plus, History } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/lista/")({
-  head: () => ({ meta: [{ title: "Minhas listas — Preço Certo" }, { name: "description", content: "Suas listas de compras e histórico." }, { property: "og:title", content: "Minhas listas — Preço Certo" }, { property: "og:description", content: "Suas listas de compras e histórico." }] }),
+  head: () => ({ meta: [{ title: "Minhas listas — MarketPreço" }, { name: "description", content: "Suas listas de compras e histórico." }, { property: "og:title", content: "Minhas listas — MarketPreço" }, { property: "og:description", content: "Suas listas de compras e histórico." }] }),
   component: ListsPage,
 });
 
