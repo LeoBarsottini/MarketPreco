@@ -17,7 +17,7 @@ import { ChevronLeft, Pencil, Plus, Trash2, CheckCheck, RotateCcw } from "lucide
 import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authenticated/lista/$id")({
-  head: () => ({ meta: [{ title: "Lista de compras — Preço Certo" }, { name: "description", content: "Itens, preços e total da sua lista." }, { property: "og:title", content: "Lista de compras — Preço Certo" }, { property: "og:description", content: "Itens, preços e total da sua lista." }] }),
+  head: () => ({ meta: [{ title: "Lista de compras — MarketPreço" }, { name: "description", content: "Itens, preços e total da sua lista." }, { property: "og:title", content: "Lista de compras — MarketPreço" }, { property: "og:description", content: "Itens, preços e total da sua lista." }] }),
   component: ListPage,
 });
 
