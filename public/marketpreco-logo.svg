@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" role="img" aria-labelledby="title desc">
+<title id="title">MarketPreço</title><desc id="desc">Carrinho minimalista verde e verde-petróleo</desc>
+<defs>
+<linearGradient id="handle" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#063d46"/><stop offset="1" stop-color="#006b66"/></linearGradient>
+<linearGradient id="basket" x1="0" y1="1" x2="1" y2="0"><stop stop-color="#008c68"/><stop offset=".62" stop-color="#09ae74"/><stop offset="1" stop-color="#68d868"/></linearGradient>
+</defs>
+<path d="M91 151h83c15 0 26 9 31 23l79 215c6 17 18 25 36 25h188" fill="none" stroke="url(#handle)" stroke-width="39" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M235 201 526 183c27-2 43 21 35 46L498 374c-7 18-20 25-39 25H315c-16 0-28-9-33-23l-64-135c-11-22-1-38 17-40Z" fill="url(#basket)"/>
+<path d="m306 266 181-11M334 324l128-7" fill="none" stroke="#fff" stroke-width="20" stroke-linecap="round"/>
+<circle cx="322" cy="482" r="32" fill="url(#handle)"/><circle cx="474" cy="482" r="32" fill="url(#handle)"/>
+</svg>
