@@ -7,7 +7,11 @@ import type { Database } from "@/integrations/supabase/types";
 import { latestPricesByStore, priceDateLabel, type PriceAgeDays } from "@/lib/store-prices";
 import { formatBRL } from "@/lib/money";
 import { PageHeader } from "@/components/AppShell";
-import { ExternalLink, MapPin, Search, X } from "lucide-react";
+import { MapPin, Search, X } from "lucide-react";
+import { LocationPicker, validShopCoordinates, type ShopCoordinates } from "@/components/LocationPicker";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
@@ -120,6 +124,10 @@ type ProductOption = Pick<Product, "id" | "name" | "brand" | "package_size" | "p
 
 function MapPage() {
   const stores = useQuery(storesQuery());
+  const qc = useQueryClient();
+  const [editingStore, setEditingStore] = useState<Store | null>(null);
+  const [editedCoords, setEditedCoords] = useState<ShopCoordinates | null>(null);
+  const [savingLocation, setSavingLocation] = useState(false);
   const [storeSearch, setStoreSearch] = useState(() => typeof window === "undefined" ? "" : new URLSearchParams(window.location.search).get("busca") ?? "");
   const [productSearch, setProductSearch] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<ProductOption | null>(null);
@@ -165,6 +173,22 @@ function MapPage() {
     );
   }, [stores.data, storeSearch, selectedProduct, onlyWithPrice, pricesByStore]);
   const locatedStores = useMemo(() => filteredStores.filter(validCoords), [filteredStores]);
+
+  async function saveLocation() {
+    if (!editingStore || !validShopCoordinates(editedCoords)) return;
+    setSavingLocation(true);
+    try {
+      const { error } = await supabase.from("stores").update({
+        latitude: editedCoords.lat, longitude: editedCoords.lng,
+      }).eq("id", editingStore.id);
+      if (error) throw error;
+      await qc.invalidateQueries({ queryKey: ["stores"] });
+      toast.success("Marcador atualizado no mapa do MarketPreço.");
+      setEditingStore(null);
+    } catch (e) {
+      toast.error("Não foi possível salvar a posição: " + (e as Error).message);
+    } finally { setSavingLocation(false); }
+  }
 
   function clearProduct() {
     setProductSearch("");
@@ -283,9 +307,6 @@ function MapPage() {
       <ul className="space-y-2">
         {filteredStores.map((store) => {
           const observation = selectedProduct ? pricesByStore.get(store.id) : undefined;
-          const addressQuery = validCoords(store)
-            ? `${store.latitude},${store.longitude}`
-            : `${store.address}, ${store.city}, ${store.state ?? ""}`;
           return (
             <li key={store.id} className="flex items-start gap-3 rounded-xl bg-card p-3 shadow-card">
               <MapPin className="mt-1 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
@@ -307,19 +328,28 @@ function MapPage() {
                 )}
                 {!validCoords(store) && <p className="text-xs text-warning-foreground">Sem coordenadas cadastradas</p>}
               </div>
-              <a
-                className="shrink-0 text-primary"
-                href={`https://www.openstreetmap.org/search?query=${encodeURIComponent(addressQuery)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={`Abrir ${store.name} no OpenStreetMap`}
-              >
-                <ExternalLink className="h-4 w-4" />
-              </a>
+              {!validCoords(store) && <Button size="sm" variant="outline" onClick={() => {
+                setEditingStore(store);
+                setEditedCoords(null);
+              }}>Marcar no mapa</Button>}
             </li>
           );
         })}
       </ul>
+      <Dialog open={editingStore !== null} onOpenChange={(open) => { if (!open && !savingLocation) setEditingStore(null); }}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
+          <DialogHeader><DialogTitle>Marcar supermercado no mapa</DialogTitle></DialogHeader>
+          {editingStore && (
+            <>
+              <p className="text-sm text-muted-foreground">{editingStore.name} · {editingStore.address} · {editingStore.city}</p>
+              <LocationPicker value={editedCoords} onChange={setEditedCoords} />
+              <Button disabled={!validShopCoordinates(editedCoords) || savingLocation} onClick={() => void saveLocation()}>
+                {savingLocation ? "Salvando localização…" : "Confirmar localização"}
+              </Button>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
