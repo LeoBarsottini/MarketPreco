@@ -233,8 +233,34 @@ function PriceStep({ store, product, listId, onDone }: { store: Store; product: 
         });
         if (error) throw error;
       }
-      const { error } = await supabase.from("shopping_list_items").insert({ list_id: listId, product_id: product.id, store_id: store.id, quantity: q, unit_price: p });
-      if (error) throw error;
+      // Um produto já presente no carrinho deve aumentar sua quantidade, sem gerar linha duplicada.
+      const { data: existing, error: readError } = await supabase
+        .from("shopping_list_items")
+        .select("id, quantity")
+        .eq("list_id", listId)
+        .eq("product_id", product.id)
+        .eq("store_id", store.id)
+        .limit(1)
+        .maybeSingle();
+      if (readError) throw readError;
+
+      if (existing) {
+        const { error } = await supabase
+          .from("shopping_list_items")
+          .update({ quantity: Number(existing.quantity) + q, unit_price: p })
+          .eq("id", existing.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("shopping_list_items")
+          .insert({ list_id: listId, product_id: product.id, store_id: store.id, quantity: q, unit_price: p });
+        if (error) throw error;
+      }
+
+      // Preenche o supermercado principal somente se a lista ainda não tiver um.
+      const { error: listError } = await supabase.from("shopping_lists")
+        .update({ store_id: store.id }).eq("id", listId).is("store_id", null);
+      if (listError) throw listError;
     },
     onSuccess: () => { toast.success("Item adicionado à lista"); onDone(); },
     onError: (e) => toast.error((e as Error).message),
