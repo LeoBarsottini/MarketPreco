@@ -14,16 +14,350 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      price_observations: {
+        Row: {
+          created_at: string
+          id: string
+          is_public: boolean
+          observed_at: string
+          price: number
+          product_id: string
+          source: string
+          store_id: string
+          user_confirmed: boolean
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_public?: boolean
+          observed_at?: string
+          price: number
+          product_id: string
+          source?: string
+          store_id: string
+          user_confirmed: boolean
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_public?: boolean
+          observed_at?: string
+          price?: number
+          product_id?: string
+          source?: string
+          store_id?: string
+          user_confirmed?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "price_observations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "price_observations_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      price_reports: {
+        Row: {
+          created_at: string
+          details: string | null
+          id: string
+          observation_id: string
+          reason: string
+          reporter_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          observation_id: string
+          reason: string
+          reporter_id?: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          observation_id?: string
+          reason?: string
+          reporter_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "price_reports_observation_id_fkey"
+            columns: ["observation_id"]
+            isOneToOne: false
+            referencedRelation: "price_observations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          barcode: string | null
+          brand: string | null
+          created_at: string
+          created_by: string
+          id: string
+          name: string
+          package_size: number | null
+          package_unit: string | null
+          updated_at: string
+        }
+        Insert: {
+          barcode?: string | null
+          brand?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          name: string
+          package_size?: number | null
+          package_unit?: string | null
+          updated_at?: string
+        }
+        Update: {
+          barcode?: string | null
+          brand?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          name?: string
+          package_size?: number | null
+          package_unit?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      shopping_list_items: {
+        Row: {
+          checked: boolean
+          created_at: string
+          id: string
+          list_id: string
+          note: string | null
+          product_id: string
+          quantity: number
+          store_id: string | null
+          unit_price: number | null
+          updated_at: string
+        }
+        Insert: {
+          checked?: boolean
+          created_at?: string
+          id?: string
+          list_id: string
+          note?: string | null
+          product_id: string
+          quantity?: number
+          store_id?: string | null
+          unit_price?: number | null
+          updated_at?: string
+        }
+        Update: {
+          checked?: boolean
+          created_at?: string
+          id?: string
+          list_id?: string
+          note?: string | null
+          product_id?: string
+          quantity?: number
+          store_id?: string | null
+          unit_price?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shopping_list_items_list_id_fkey"
+            columns: ["list_id"]
+            isOneToOne: false
+            referencedRelation: "shopping_lists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shopping_list_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shopping_list_items_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shopping_lists: {
+        Row: {
+          budget: number | null
+          completed_at: string | null
+          created_at: string
+          id: string
+          name: string
+          status: string
+          store_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          budget?: number | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          status?: string
+          store_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          budget?: number | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          status?: string
+          store_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shopping_lists_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stores: {
+        Row: {
+          address: string
+          chain: string | null
+          city: string
+          created_at: string
+          created_by: string
+          id: string
+          latitude: number | null
+          longitude: number | null
+          name: string
+          neighborhood: string | null
+          state: string | null
+          updated_at: string
+        }
+        Insert: {
+          address: string
+          chain?: string | null
+          city: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          neighborhood?: string | null
+          state?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          chain?: string | null
+          city?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          neighborhood?: string | null
+          state?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      public_prices_for_product: {
+        Args: { _product_id: string }
+        Returns: {
+          is_mine: boolean
+          observation_id: string
+          observed_at: string
+          price: number
+          store_city: string
+          store_id: string
+          store_name: string
+        }[]
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +484,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+    },
   },
 } as const
