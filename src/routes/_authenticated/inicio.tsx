@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { listsQuery, productLabel } from "@/lib/queries";
 import { computeTotals, formatBRL } from "@/lib/money";
 import { AddItemDialog } from "@/components/AddItemDialog";
+import { ModerationPanel } from "@/components/ModerationPanel";
 import { Button } from "@/components/ui/button";
 import { LogOut, Plus, ScanBarcode } from "lucide-react";
 
@@ -84,6 +85,7 @@ function Home() {
           </li>
         ))}
       </ul>
+      <ModerationPanel userId={user.id} />
       <AddItemDialog open={adding} onOpenChange={setAdding} />
     </>
   );
