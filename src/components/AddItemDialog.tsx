@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +14,7 @@ import { StoreForm } from "@/components/StoreForm";
 import { ProductForm } from "@/components/ProductForm";
 import { listsQuery, productLabel, storesQuery, type Product, type Store } from "@/lib/queries";
 import { formatBRL, lineSubtotal, parseDecimal } from "@/lib/money";
+import { createAtomicCartArgs, type AtomicCartArgs } from "@/lib/cart-command";
 import { ChevronLeft, Plus, ScanBarcode, Search, Store as StoreIcon } from "lucide-react";
 
 type Step = "list" | "store" | "product" | "price";
@@ -226,48 +227,43 @@ function PriceStep({ store, product, listId, onDone }: { store: Store; product: 
   const priceInvalid = price.trim() !== "" && (p == null || p <= 0 || p >= 100000);
   const sub = q && p ? lineSubtotal(q, p) : null;
 
+  // Repete a MESMA carga e ID após um erro de rede: o servidor deduplica.
+  const pendingCommand = useRef<AtomicCartArgs | null>(null);
+  const resetPendingCommand = () => { pendingCommand.current = null; };
+
   const save = useMutation({
     mutationFn: async () => {
-      if (q == null || q <= 0) throw new Error("Quantidade inválida.");
-      if (priceInvalid) throw new Error("Preço inválido.");
-      if (p != null && !confirmed) throw new Error("Confirme que você viu este preço.");
-      if (p != null) {
-        const observedAt = date === today ? new Date().toISOString() : new Date(date + "T12:00:00").toISOString();
-        const { error } = await supabase.from("price_observations").insert({
-          store_id: store.id, product_id: product.id, price: p, observed_at: observedAt, user_confirmed: true, is_public: share, source: priceSource,
-        });
-        if (error) throw error;
-      }
-      // Um produto já presente no carrinho deve aumentar sua quantidade, sem gerar linha duplicada.
-      const { data: existing, error: readError } = await supabase
-        .from("shopping_list_items")
-        .select("id, quantity")
-        .eq("list_id", listId)
-        .eq("product_id", product.id)
-        .eq("store_id", store.id)
-        .limit(1)
-        .maybeSingle();
-      if (readError) throw readError;
-
-      if (existing) {
-        const { error } = await supabase
-          .from("shopping_list_items")
-          .update({ quantity: Number(existing.quantity) + q, ...(p == null ? {} : { unit_price: p }) })
-          .eq("id", existing.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from("shopping_list_items")
-          .insert({ list_id: listId, product_id: product.id, store_id: store.id, quantity: q, unit_price: p });
-        if (error) throw error;
+      if (!pendingCommand.current) {
+        pendingCommand.current = createAtomicCartArgs({
+          listId,
+          productId: product.id,
+          storeId: store.id,
+          quantity: q ?? Number.NaN,
+          unitPrice: p,
+          observedDate: date,
+          source: priceSource,
+          confirmed,
+          share,
+        }, crypto.randomUUID());
       }
 
-      // Preenche o supermercado principal somente se a lista ainda não tiver um.
-      const { error: listError } = await supabase.from("shopping_lists")
-        .update({ store_id: store.id }).eq("id", listId).is("store_id", null);
-      if (listError) throw listError;
+      const { data, error } = await supabase.rpc("add_shopping_item_atomic", pendingCommand.current);
+      if (error) {
+        if (error.code === "PGRST202" || error.code === "42883") {
+          throw new Error("Salvamento indisponível: a função de compras ainda não está instalada no banco de dados.");
+        }
+        throw new Error(error.message);
+      }
+      if (!data?.length || !data[0]?.item_id) {
+        throw new Error("O servidor não confirmou o salvamento. Tente novamente.");
+      }
+      return data[0];
     },
-    onSuccess: () => { toast.success("Item adicionado à lista"); onDone(); },
+    onSuccess: () => {
+      pendingCommand.current = null;
+      toast.success("Item adicionado à lista");
+      onDone();
+    },
     onError: (e) => toast.error((e as Error).message),
   });
 
@@ -278,22 +274,22 @@ function PriceStep({ store, product, listId, onDone }: { store: Store; product: 
         <p className="text-muted-foreground">{store.name} · {store.city}</p>
       </div>
       <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1"><Label>Quantidade</Label><Input inputMode="decimal" required value={qty} onChange={(e) => setQty(e.target.value)} /></div>
-        <div className="space-y-1"><Label>Preço unitário (R$)</Label><Input inputMode="decimal" placeholder="Sem preço" value={price} onChange={(e) => { setPrice(e.target.value); setPriceSource("manual"); setConfirmed(false); }} aria-invalid={priceInvalid} /></div>
+        <div className="space-y-1"><Label>Quantidade</Label><Input inputMode="decimal" required value={qty} onChange={(e) => { resetPendingCommand(); setQty(e.target.value); }} /></div>
+        <div className="space-y-1"><Label>Preço unitário (R$)</Label><Input inputMode="decimal" placeholder="Sem preço" value={price} onChange={(e) => { resetPendingCommand(); setPrice(e.target.value); setPriceSource("manual"); setConfirmed(false); }} aria-invalid={priceInvalid} /></div>
       </div>
-      <PriceLabelOCR onSelect={(value) => { setPrice(value); setPriceSource("ocr"); setConfirmed(false); }} />
+      <PriceLabelOCR onSelect={(value) => { resetPendingCommand(); setPrice(value); setPriceSource("ocr"); setConfirmed(false); }} />
       {p != null && !priceInvalid && (
         <div className="space-y-3 rounded-lg border p-3">
-          <div className="space-y-1"><Label>Data em que viu o preço</Label><Input type="date" max={today} value={date} onChange={(e) => setDate(e.target.value)} /></div>
-          <label className="flex items-start gap-2 text-sm"><Checkbox checked={confirmed} onCheckedChange={(v) => setConfirmed(v === true)} className="mt-0.5" /> Confirmo que vi este preço neste supermercado.</label>
-          <label className="flex items-center justify-between gap-2 text-sm"><span>Compartilhar com a comunidade<span className="block text-xs text-muted-foreground">Seu nome e e-mail nunca são exibidos.</span></span><Switch checked={share} onCheckedChange={setShare} /></label>
+          <div className="space-y-1"><Label>Data em que viu o preço</Label><Input type="date" max={today} value={date} onChange={(e) => { resetPendingCommand(); setDate(e.target.value); setConfirmed(false); }} /></div>
+          <label className="flex items-start gap-2 text-sm"><Checkbox checked={confirmed} onCheckedChange={(v) => { resetPendingCommand(); setConfirmed(v === true); }} className="mt-0.5" /> Confirmo que vi este preço neste supermercado.</label>
+          <label className="flex items-center justify-between gap-2 text-sm"><span>Compartilhar com a comunidade<span className="block text-xs text-muted-foreground">Seu nome e e-mail nunca são exibidos.</span></span><Switch checked={share} onCheckedChange={(v) => { resetPendingCommand(); setShare(v); }} /></label>
         </div>
       )}
       <div className="flex items-center justify-between text-sm">
         <span className="text-muted-foreground">Subtotal</span>
         <span className="text-lg font-semibold tabular">{sub != null ? formatBRL(sub) : "—"}</span>
       </div>
-      <Button type="submit" className="w-full" disabled={save.isPending || (p != null && !confirmed)}>Adicionar à lista</Button>
+      <Button type="submit" className="w-full" disabled={save.isPending || !q || q <= 0 || priceInvalid || (p != null && !confirmed)}>Adicionar à lista</Button>
     </form>
   );
 }
