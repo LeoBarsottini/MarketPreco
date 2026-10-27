@@ -1,0 +1,49 @@
+name: Testar transações PostgreSQL
+on:
+  push:
+    branches: [main]
+    paths:
+      - "supabase/migrations/**"
+      - "src/test/sql/**"
+      - ".github/workflows/database.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/migrations/**"
+      - "src/test/sql/**"
+      - ".github/workflows/database.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: marketpreco_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ci_ephemeral_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d marketpreco_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGUSER: postgres
+      PGPASSWORD: ci_ephemeral_only
+      PGDATABASE: marketpreco_test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Montar esquema isolado
+        run: psql -X -v ON_ERROR_STOP=1 -f src/test/sql/cart-setup.sql
+      - name: Aplicar migração transacional
+        run: psql -X -v ON_ERROR_STOP=1 -f supabase/migrations/20261027190000_atomic_cart.sql
+      - name: Validar acesso, idempotência e integridade
+        run: psql -X -v ON_ERROR_STOP=1 -f src/test/sql/cart-assertions.sql
