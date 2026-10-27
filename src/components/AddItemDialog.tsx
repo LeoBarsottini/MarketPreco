@@ -252,7 +252,7 @@ function PriceStep({ store, product, listId, onDone }: { store: Store; product: 
       if (existing) {
         const { error } = await supabase
           .from("shopping_list_items")
-          .update({ quantity: Number(existing.quantity) + q, unit_price: p })
+          .update({ quantity: Number(existing.quantity) + q, ...(p == null ? {} : { unit_price: p }) })
           .eq("id", existing.id);
         if (error) throw error;
       } else {
