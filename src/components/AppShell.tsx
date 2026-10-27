@@ -1,5 +1,5 @@
 import { Link, Outlet } from "@tanstack/react-router";
-import { Home, ScanBarcode, ListChecks, MapPin, Scale, ShoppingBasket } from "lucide-react";
+import { Home, ScanBarcode, ListChecks, MapPin, Scale, ShoppingBasket, Store, History, ChevronRight } from "lucide-react";
 
 const nav = [
   { to: "/inicio", label: "Início", icon: Home },
@@ -45,6 +45,12 @@ export function AppShell() {
               </Link>
             ))}
           </nav>
+          <div className="my-5 border-t border-border" />
+          <p className="mb-2 px-3 text-xs font-bold uppercase tracking-widest text-muted-foreground">Mais opções</p>
+          <div className="space-y-1">
+            <Link to="/mapa" className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-muted-foreground hover:bg-[#edf5ff] hover:text-[#075aab]"><Store className="h-5 w-5" />Supermercados<ChevronRight className="ml-auto h-4 w-4" /></Link>
+            <Link to="/lista" className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-muted-foreground hover:bg-[#edf5ff] hover:text-[#075aab]"><History className="h-5 w-5" />Histórico de compras<ChevronRight className="ml-auto h-4 w-4" /></Link>
+          </div>
           <div className="mt-10 rounded-xl bg-[#eef8f5] p-4 text-sm text-[#134a43]">
             <strong>Economia começa aqui</strong>
             <p className="mt-1 text-xs leading-relaxed">Registre valores reais e compare suas compras com mais clareza.</p>
