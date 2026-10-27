@@ -1,10 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { storesQuery, type Store } from "@/lib/queries";
+import { storesQuery, productPricesQuery, productLabel, type Store, type Product } from "@/lib/queries";
+import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
+import { latestPricesByStore, priceDateLabel, type PriceAgeDays } from "@/lib/store-prices";
+import { formatBRL } from "@/lib/money";
 import { PageHeader } from "@/components/AppShell";
-import { ExternalLink, MapPin, Search } from "lucide-react";
+import { ExternalLink, MapPin, Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+
+type PriceRow = Database["public"]["Functions"]["public_prices_for_product"]["Returns"][number];
 
 export const Route = createFileRoute("/_authenticated/mapa")({
   head: () => ({ meta: [
@@ -62,7 +69,7 @@ function validCoords(store: Store): store is LocatedStore {
     store.latitude >= -90 && store.latitude <= 90 && store.longitude >= -180 && store.longitude <= 180;
 }
 
-function StoreMap({ stores }: { stores: LocatedStore[] }) {
+function StoreMap({ stores, prices }: { stores: LocatedStore[]; prices: ReadonlyMap<string, PriceRow> }) {
   const element = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -81,8 +88,12 @@ function StoreMap({ stores }: { stores: LocatedStore[] }) {
       });
       map.addControl(new lib.NavigationControl());
       for (const store of stores) {
-        const marker = new lib.Marker({ color: "#26777c" }).setLngLat([store.longitude, store.latitude]);
-        const popup = new lib.Popup({ offset: 20 }).setText(`${store.name} — ${store.address}, ${store.city}`);
+        const price = prices.get(store.id);
+        const marker = new lib.Marker({ color: price ? "#26777c" : "#94a3b8" }).setLngLat([store.longitude, store.latitude]);
+        const description = price
+          ? `${store.name} — ${store.address}, ${store.city} — ${formatBRL(Number(price.price))} em ${priceDateLabel(price.observed_at)} (preço colaborativo, não auditado)`
+          : `${store.name} — ${store.address}, ${store.city} — sem preço registrado para o produto selecionado`;
+        const popup = new lib.Popup({ offset: 20 }).setText(description);
         marker.setPopup(popup).addTo(map);
       }
       if (stores.length > 1) {
@@ -92,13 +103,13 @@ function StoreMap({ stores }: { stores: LocatedStore[] }) {
       }
     }).catch((e: unknown) => { if (!cancelled) setError(e instanceof Error ? e.message : "Mapa indisponível."); });
     return () => { cancelled = true; map?.remove(); };
-  }, [stores]);
+  }, [stores, prices]);
 
   return (
     <section aria-label="Mapa das unidades cadastradas" className="mb-5">
       {error && <p role="alert" className="mb-3 rounded-lg bg-warning p-3 text-sm text-warning-foreground">{error} A lista de endereços continua disponível abaixo.</p>}
       <div ref={element} className="h-[360px] w-full overflow-hidden rounded-xl border bg-muted sm:h-[480px]" />
-      <p className="mt-2 text-xs text-muted-foreground">Marcadores exibem somente lojas com coordenadas cadastradas. Mapa por OpenFreeMap e OpenStreetMap.</p>
+      <p className="mt-2 text-xs text-muted-foreground">Verde: preço disponível para o produto selecionado. Cinza: sem preço no período. Somente lojas com coordenadas aparecem no mapa. Cartografia por OpenFreeMap e OpenStreetMap.</p>
     </section>
   );
 }
