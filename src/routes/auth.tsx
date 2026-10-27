@@ -11,10 +11,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Entrar — Preço Certo" },
-      { name: "description", content: "Entre ou crie sua conta no Preço Certo." },
-      { property: "og:title", content: "Entrar — Preço Certo" },
-      { property: "og:description", content: "Entre ou crie sua conta no Preço Certo." },
+      { title: "Entrar — MarketPreço" },
+      { name: "description", content: "Entre ou crie sua conta no MarketPreço." },
+      { property: "og:title", content: "Entrar — MarketPreço" },
+      { property: "og:description", content: "Entre ou crie sua conta no MarketPreço." },
     ],
   }),
   component: AuthPage,
@@ -67,7 +67,7 @@ function AuthPage() {
   return (
     <div className="min-h-screen bg-hero px-4 py-10">
       <div className="mx-auto max-w-sm">
-        <h1 className="text-center text-3xl font-extrabold text-primary-foreground">Preço Certo</h1>
+        <h1 className="text-center text-3xl font-extrabold text-primary-foreground">MarketPreço</h1>
         <p className="mt-1 text-center text-sm text-primary-foreground/80">Preços reais, registrados por quem compra.</p>
         <div className="mt-8 rounded-2xl bg-card p-5 shadow-card">
           {sent ? (
