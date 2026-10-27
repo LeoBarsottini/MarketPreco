@@ -274,6 +274,7 @@ function PriceStep({ store, product, listId, onDone }: { store: Store; product: 
 
   return (
     <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); save.mutate(); }}>
+      <fieldset disabled={save.isPending} className="space-y-4">
       <div className="rounded-lg bg-muted p-3 text-sm">
         <p className="font-medium">{productLabel(product)}</p>
         <p className="text-muted-foreground">{store.name} · {store.city}</p>
@@ -295,6 +296,7 @@ function PriceStep({ store, product, listId, onDone }: { store: Store; product: 
         <span className="text-lg font-semibold tabular">{sub != null ? formatBRL(sub) : "—"}</span>
       </div>
       <Button type="submit" className="w-full" disabled={save.isPending || !q || q <= 0 || priceInvalid || (p != null && !confirmed)}>Adicionar à lista</Button>
+      </fieldset>
     </form>
   );
 }
