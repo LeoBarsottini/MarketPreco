@@ -25,7 +25,7 @@ const SRC = "https://cdn.jsdelivr.net/npm/maplibre-gl@5.6.1/dist/maplibre-gl.js"
 const CSS = "https://cdn.jsdelivr.net/npm/maplibre-gl@5.6.1/dist/maplibre-gl.css";
 
 async function loadMap(): Promise<PickerLib> {
-  const win = window as Window & { maplibregl?: PickerLib };
+  const win = window as unknown as { maplibregl?: PickerLib };
   if (win.maplibregl) return win.maplibregl;
   if (!document.querySelector('link[data-marketpreco-maplibre]')) {
     const link = document.createElement("link");
@@ -90,7 +90,7 @@ export function LocationPicker({
 
   useEffect(() => {
     if (!validShopCoordinates(value) || !mapRef.current) return;
-    const win = window as Window & { maplibregl?: PickerLib };
+    const win = window as unknown as { maplibregl?: PickerLib };
     if (!win.maplibregl) return;
     markerRef.current?.remove();
     markerRef.current = new win.maplibregl.Marker({ color: "#075aab" })
