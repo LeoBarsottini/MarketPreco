@@ -26,7 +26,10 @@ function Landing() {
     <div className="min-h-screen">
       <section className="bg-hero px-5 pb-14 pt-16 text-primary-foreground">
         <div className="mx-auto max-w-xl">
-          <h1 className="text-4xl font-extrabold leading-tight">MarketPreço</h1>
+          <div className="inline-flex items-center gap-3 rounded-2xl bg-white px-5 py-3 shadow-sm">
+            <img src="/marketpreco-logo.svg" alt="" className="h-14 w-14" />
+            <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl"><span className="text-[#063d46]">Market</span><span className="text-[#08a16f]">Preço</span></h1>
+          </div>
           <p className="mt-3 text-lg text-primary-foreground/85">
             Anote o preço que você viu na gôndola, monte sua lista e saiba quanto vai gastar.
           </p>
