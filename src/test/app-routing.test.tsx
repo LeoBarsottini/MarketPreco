@@ -14,4 +14,20 @@ describe("App routing", () => {
 
     expect(matches.at(-1)?.routeId).not.toBe(rootRouteId);
   });
+
+  it.each([
+    "/auth",
+    "/inicio",
+    "/escanear",
+    "/lista",
+    "/lista/12a6b68e-e9ff-46b9-ac4d-b9bd81009012",
+    "/mapa",
+    "/comparar",
+    "/produto/12a6b68e-e9ff-46b9-ac4d-b9bd81009012",
+  ])("reconhece a rota %s sem cair na tela 404", (path) => {
+    const router = createRouter({ routeTree, context: { queryClient: new QueryClient() } });
+    const matches = router.matchRoutes(path);
+    expect(matches.at(-1)?.routeId).not.toBe(rootRouteId);
+    expect(matches.length).toBeGreaterThan(1);
+  });
 });
