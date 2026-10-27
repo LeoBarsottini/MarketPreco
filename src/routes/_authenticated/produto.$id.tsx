@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { productLabel, productPricesQuery } from "@/lib/queries";
 import { formatBRL } from "@/lib/money";
 import { AddItemDialog } from "@/components/AddItemDialog";
+import { PriceHistory } from "@/components/PriceHistory";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, Plus } from "lucide-react";
 
@@ -57,6 +58,7 @@ function ProductPage() {
           </li>
         ))}
       </ul>
+      <PriceHistory productId={id} />
       <AddItemDialog open={adding} onOpenChange={setAdding} initialProduct={product.data} />
     </>
   );
