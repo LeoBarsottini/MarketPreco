@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Preço Certo — preços de supermercado colaborativos" },
+      { title: "MarketPreço — preços de supermercado colaborativos" },
       { name: "description", content: "Registre preços que você viu no supermercado, monte sua lista e saiba o total antes do caixa." },
-      { property: "og:title", content: "Preço Certo — preços de supermercado colaborativos" },
+      { property: "og:title", content: "MarketPreço — preços de supermercado colaborativos" },
       { property: "og:description", content: "Registre preços reais, monte sua lista e acompanhe o total da compra." },
     ],
   }),
@@ -26,7 +26,7 @@ function Landing() {
     <div className="min-h-screen">
       <section className="bg-hero px-5 pb-14 pt-16 text-primary-foreground">
         <div className="mx-auto max-w-xl">
-          <h1 className="text-4xl font-extrabold leading-tight">Preço Certo</h1>
+          <h1 className="text-4xl font-extrabold leading-tight">MarketPreço</h1>
           <p className="mt-3 text-lg text-primary-foreground/85">
             Anote o preço que você viu na gôndola, monte sua lista e saiba quanto vai gastar.
           </p>
