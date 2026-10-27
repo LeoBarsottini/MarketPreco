@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/AppShell";
 import { ExternalLink, MapPin } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/mapa")({
-  head: () => ({ meta: [{ title: "Mapa — Preço Certo" }, { name: "description", content: "Supermercados cadastrados." }, { property: "og:title", content: "Mapa — Preço Certo" }, { property: "og:description", content: "Supermercados cadastrados." }] }),
+  head: () => ({ meta: [{ title: "Mapa — MarketPreço" }, { name: "description", content: "Supermercados cadastrados." }, { property: "og:title", content: "Mapa — MarketPreço" }, { property: "og:description", content: "Supermercados cadastrados." }] }),
   component: MapPage,
 });
 
