@@ -1,5 +1,5 @@
 import { Link, Outlet } from "@tanstack/react-router";
-import { Home, ScanBarcode, ListChecks, MapPin, Scale, ShoppingBasket } from "lucide-react";
+import { Home, ScanBarcode, ListChecks, MapPin, Scale } from "lucide-react";
 
 const nav = [
   { to: "/inicio", label: "Início", icon: Home },
@@ -14,8 +14,8 @@ export function AppShell() {
     <div className="mx-auto min-h-screen max-w-7xl md:flex">
       <aside className="hidden w-64 shrink-0 flex-col border-r bg-card px-4 py-7 md:flex">
         <Link to="/inicio" className="mb-10 flex items-center gap-3 px-3 text-lg font-extrabold text-primary">
-          <ShoppingBasket className="h-7 w-7" aria-hidden="true" />
-          MarketPreço
+          <img src="/marketpreco-logo.svg" alt="" className="h-10 w-10 shrink-0" />
+          <span className="tracking-tight"><span className="text-[#063d46] dark:text-[#d1f3eb]">Market</span><span className="text-[#08a16f]">Preço</span></span>
         </Link>
         <nav aria-label="Navegação principal" className="space-y-1">
           {nav.map(({ to, label, icon: Icon }) => (
