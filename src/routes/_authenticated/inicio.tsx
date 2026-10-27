@@ -68,11 +68,11 @@ function Home() {
           <LogOut className="h-4 w-4" aria-hidden="true" /> {signingOut ? "Saindo…" : "Sair"}
         </Button>
       </header>
-      <form className="relative mb-6" onSubmit={(e) => { e.preventDefault(); if (search.trim()) navigate({ to: "/mapa" }); }}>
+      <form className="relative mb-6" onSubmit={(e) => { e.preventDefault(); window.location.assign(`/mapa?busca=${encodeURIComponent(search.trim())}`); }}>
         <Search className="pointer-events-none absolute left-4 top-3.5 h-5 w-5 text-[#075aab]" aria-hidden="true" />
         <Input value={search} onChange={(e) => setSearch(e.target.value)}
           aria-label="Pesquisar produtos e supermercados"
-          placeholder="Buscar produto, supermercado ou código de barras..."
+          placeholder="Buscar supermercado, bairro ou cidade..."
           className="h-12 rounded-xl border-[#d8e3ef] bg-white pl-12 shadow-sm" />
         <Button type="submit" size="sm" className="absolute right-1.5 top-1.5 h-9 bg-[#075aab]">Buscar</Button>
       </form>
