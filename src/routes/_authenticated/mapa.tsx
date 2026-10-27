@@ -54,13 +54,15 @@ function loadMapLibre(): Promise<MapLibreGlobal> {
   return loading;
 }
 
-function validCoords(store: Store): store is Store & { latitude: number; longitude: number } {
+type LocatedStore = Store & { latitude: number; longitude: number };
+
+function validCoords(store: Store): store is LocatedStore {
   return store.latitude != null && store.longitude != null &&
     Number.isFinite(store.latitude) && Number.isFinite(store.longitude) &&
     store.latitude >= -90 && store.latitude <= 90 && store.longitude >= -180 && store.longitude <= 180;
 }
 
-function StoreMap({ stores }: { stores: Store[] }) {
+function StoreMap({ stores }: { stores: LocatedStore[] }) {
   const element = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
 
