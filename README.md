@@ -36,7 +36,7 @@ React 19, TypeScript, Tailwind CSS, shadcn/ui, TanStack Router/Query, Supabase e
 ## Executar localmente
 
 1. Instale Node.js 22+ e [Bun](https://bun.sh/).
-2. Clone o repositório (requer acesso, pois ele é privado).
+2. Clone o repositório (a visibilidade atual do repositório é pública; revise antes do lançamento).
 3. Execute:
 
 ```sh
@@ -81,7 +81,7 @@ registro de operações e IDs de requisição para evitar duplicações em tenta
 Os cenários de aceitação manual estão em [docs/QA-MVP.md](docs/QA-MVP.md).
 Uma compilação aprovada não comprova a execução ponta a ponta com autenticação e câmera.
 
-## Moderação de preços (preparada, não ativada)
+## Moderação de preços (funções ativadas)
 
 A migração `supabase/migrations/20261027193000_price_moderation.sql`
 adiciona denúncias com deduplicação por usuário/observação, fila restrita
@@ -99,12 +99,16 @@ real, alterar o valor para `true`. Não ativar antes de confirmar as funções
 A migração é testada em um PostgreSQL efêmero pelo GitHub Actions; ela não
 cria observações de teste no banco principal.
 
+## Experiência no celular
+
+O arquivo `public/manifest.webmanifest` e os metadados no documento definem o nome, o ícone vetorial e a cor do MarketPreço para instalação pelo navegador compatível. **Ainda não existe modo offline nem garantia de instalação em todos os navegadores.** Não armazenamos respostas privadas da API em cache de serviço.
+
 ## Próximas etapas
 
 - Validar autenticação e operações de compra de ponta a ponta;
 - validar no navegador o mapa interativo, a leitura OCR das etiquetas e os gráficos históricos;
-- ativar migração de moderação no banco real e validar análise de denúncias; melhorar prevenção de abuso;
-- adicionar persistência local para visitantes e experiência PWA instalável;
+- atribuir um administrador autorizado e validar denúncias entre duas contas; melhorar prevenção de abuso;
+- preparar ícones PNG de instalação, comportamento offline seguro e persistência local para visitantes;
 - ampliar testes em navegadores móveis e segurança do backend.
 
 **Nome exibido:** MarketPreço. **Nome técnico:** `marketpreco`. **Repositório:** `LeoBarsottini/MarketPreco`.
