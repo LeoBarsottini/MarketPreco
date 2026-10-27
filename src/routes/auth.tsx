@@ -70,7 +70,10 @@ function AuthPage() {
   return (
     <div className="min-h-screen bg-hero px-4 py-10">
       <div className="mx-auto max-w-sm">
-        <h1 className="text-center text-3xl font-extrabold text-primary-foreground">MarketPreço</h1>
+        <div className="mx-auto flex items-center justify-center gap-3 rounded-2xl bg-white px-5 py-3 shadow-sm">
+          <img src="/marketpreco-logo.svg" alt="" className="h-12 w-12" />
+          <h1 className="text-2xl font-extrabold tracking-tight"><span className="text-[#063d46]">Market</span><span className="text-[#08a16f]">Preço</span></h1>
+        </div>
         <p className="mt-1 text-center text-sm text-primary-foreground/80">Preços reais, registrados por quem compra.</p>
         <div className="mt-8 rounded-2xl bg-card p-5 shadow-card">
           {sent ? (
