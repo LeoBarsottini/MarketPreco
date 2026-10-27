@@ -109,3 +109,54 @@ BEGIN
   END IF;
 END;
 $do$;
+
+
+-- Força falha DEPOIS da alteração do item, durante a inserção do preço.
+-- Com transação correta, nenhuma modificação da chamada deve permanecer.
+CREATE FUNCTION public.ci_reject_price() RETURNS trigger
+LANGUAGE plpgsql AS $trigger$
+BEGIN
+  IF NEW.price = 13.37 THEN
+    RAISE EXCEPTION 'Falha simulada na gravação de preço.'
+      USING ERRCODE = '23514';
+  END IF;
+  RETURN NEW;
+END;
+$trigger$;
+
+CREATE TRIGGER ci_reject_price_before_insert
+BEFORE INSERT ON public.price_observations
+FOR EACH ROW EXECUTE FUNCTION public.ci_reject_price();
+
+DO $do$
+DECLARE
+  rejected boolean := false;
+  q numeric;
+  operations_count integer;
+  observations_count integer;
+BEGIN
+  PERFORM set_config('request.jwt.claim.sub', '11111111-1111-4111-8111-111111111111', true);
+
+  BEGIN
+    PERFORM public.add_shopping_item_atomic(
+      'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+      '55555555-5555-4555-8555-555555555555',
+      '33333333-3333-4333-8333-333333333333',
+      '44444444-4444-4444-8444-444444444444',
+      1, 13.37, NULL, 'manual', true, true
+    );
+  EXCEPTION WHEN check_violation THEN
+    rejected := true;
+  END;
+  IF NOT rejected THEN
+    RAISE EXCEPTION 'A inserção inválida não foi rejeitada.';
+  END IF;
+
+  SELECT quantity INTO q FROM public.shopping_list_items LIMIT 1;
+  SELECT count(*) INTO operations_count FROM public.shopping_cart_operations;
+  SELECT count(*) INTO observations_count FROM public.price_observations;
+  IF q <> 4 OR operations_count <> 2 OR observations_count <> 1 THEN
+    RAISE EXCEPTION 'Falha no preço deixou atualização parcial no carrinho.';
+  END IF;
+END;
+$do$;
