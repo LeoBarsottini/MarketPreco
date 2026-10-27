@@ -120,7 +120,7 @@ type ProductOption = Pick<Product, "id" | "name" | "brand" | "package_size" | "p
 
 function MapPage() {
   const stores = useQuery(storesQuery());
-  const [storeSearch, setStoreSearch] = useState("");
+  const [storeSearch, setStoreSearch] = useState(() => typeof window === "undefined" ? "" : new URLSearchParams(window.location.search).get("busca") ?? "");
   const [productSearch, setProductSearch] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<ProductOption | null>(null);
   const [period, setPeriod] = useState<PriceAgeDays>(30);
