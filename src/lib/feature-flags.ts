@@ -1,6 +1,7 @@
 /**
- * Ative somente DEPOIS que 20261027193000_price_moderation.sql tiver sido
- * aplicada e os privilégios confirmados no banco real.
- * Não apresentar formulários ou painel quando os RPCs ainda não existem.
+ * Migração 20261027193000_price_moderation.sql aplicada ao banco principal
+ * em 27/10/2026, com privilégios e RLS verificados.
+ * Revisão de denúncias ainda requer que um administrador atribua papéis
+ * de moderador em uma operação autorizada, nunca pelo próprio usuário.
  */
-export const MODERATION_ENABLED = false;
+export const MODERATION_ENABLED = true;
