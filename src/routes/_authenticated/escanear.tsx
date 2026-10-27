@@ -19,7 +19,7 @@ function ScanPage() {
 
   async function onDetected(code: string) {
     const { data, error } = await supabase.from("products").select("id").eq("barcode", code).maybeSingle();
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     if (data) navigate({ to: "/produto/$id", params: { id: data.id } });
     else setUnknown(code);
   }

@@ -178,7 +178,7 @@ export function ProductStep({ onPick }: { onPick: (p: Product) => void }) {
   async function onBarcode(code: string) {
     setScan(false);
     const { data, error } = await supabase.from("products").select("*").eq("barcode", code).maybeSingle();
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     if (data) onPick(data);
     else {
       toast.info(`Código ${code} ainda não cadastrado. Cadastre o produto.`);
@@ -187,7 +187,7 @@ export function ProductStep({ onPick }: { onPick: (p: Product) => void }) {
   }
 
   if (scan) return <><BarcodeScanner onDetected={onBarcode} /><Button variant="ghost" className="mt-2 w-full" onClick={() => setScan(false)}>Cancelar</Button></>;
-  if (creating) return <><ProductForm initialBarcode={creating.barcode} initialName={creating.barcode ? "" : q} onCreated={onPick} /><Button variant="ghost" className="mt-2 w-full" onClick={() => setCreating(null)}>Cancelar</Button></>;
+  if (creating) return <><ProductForm {...(creating.barcode ? { initialBarcode: creating.barcode } : {})} initialName={creating.barcode ? "" : q} onCreated={onPick} /><Button variant="ghost" className="mt-2 w-full" onClick={() => setCreating(null)}>Cancelar</Button></>;
 
   return (
     <div className="space-y-3">

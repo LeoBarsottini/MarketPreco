@@ -42,7 +42,7 @@ export function StoreForm({ onCreated }: { onCreated: (s: Store) => void }) {
   });
 
   function locate() {
-    if (!navigator.geolocation) return toast.error("Localização indisponível neste navegador.");
+    if (!navigator.geolocation) { toast.error("Localização indisponível neste navegador."); return; }
     navigator.geolocation.getCurrentPosition(
       (p) => setCoords({ lat: p.coords.latitude, lng: p.coords.longitude }),
       () => toast.error("Permissão de localização negada."),

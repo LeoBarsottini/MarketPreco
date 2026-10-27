@@ -45,7 +45,7 @@ function ComparePage() {
   return (
     <>
       <PageHeader title="Comparar" subtitle="Custo da lista por supermercado, só com produtos idênticos." />
-      <Select value={listId} onValueChange={setListId}>
+      <Select value={listId ?? ""} onValueChange={setListId}>
         <SelectTrigger><SelectValue placeholder="Escolha uma lista" /></SelectTrigger>
         <SelectContent>{lists.data?.map((l) => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}</SelectContent>
       </Select>

@@ -44,7 +44,7 @@ function Home() {
     <>
       <header className="mb-5 flex items-center justify-between">
         <div>
-          <p className="text-sm text-muted-foreground">Olá{user.user_metadata?.display_name ? `, ${user.user_metadata.display_name}` : ""}</p>
+          <p className="text-sm text-muted-foreground">Olá{user.user_metadata?.display_name ? `, ${user.user_metadata["display_name"]}` : ""}</p>
           <h1 className="text-2xl font-bold">MarketPreço</h1>
         </div>
         <Button variant="ghost" size="icon" onClick={signOut} aria-label="Sair"><LogOut className="h-4 w-4" /></Button>
