@@ -3,6 +3,7 @@
 CREATE SCHEMA auth;
 CREATE ROLE anon NOLOGIN;
 CREATE ROLE authenticated NOLOGIN;
+CREATE ROLE service_role NOLOGIN;
 
 CREATE TABLE auth.users (id uuid PRIMARY KEY);
 
