@@ -123,6 +123,7 @@ function StoreMap({ stores, prices, productSelected }: { stores: LocatedStore[];
 type ProductOption = Pick<Product, "id" | "name" | "brand" | "package_size" | "package_unit" | "barcode">;
 
 function MapPage() {
+  const { user } = Route.useRouteContext();
   const stores = useQuery(storesQuery());
   const qc = useQueryClient();
   const [editingStore, setEditingStore] = useState<Store | null>(null);
@@ -326,9 +327,9 @@ function MapPage() {
                 {selectedProduct && !observation && !pricesQuery.isLoading && (
                   <p className="mt-1 text-xs text-muted-foreground">Sem preço registrado neste período.</p>
                 )}
-                {!validCoords(store) && <p className="text-xs text-warning-foreground">Sem coordenadas cadastradas</p>}
+                {!validCoords(store) && <p className="text-xs text-warning-foreground">Sem coordenadas cadastradas{store.created_by !== user.id ? " · somente quem cadastrou pode corrigir" : ""}</p>}
               </div>
-              {!validCoords(store) && <Button size="sm" variant="outline" onClick={() => {
+              {!validCoords(store) && store.created_by === user.id && <Button size="sm" variant="outline" onClick={() => {
                 setEditingStore(store);
                 setEditedCoords(null);
               }}>Marcar no mapa</Button>}
