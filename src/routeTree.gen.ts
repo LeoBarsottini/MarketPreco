@@ -10,33 +10,142 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedCompararRouteImport } from './routes/_authenticated/comparar'
+import { Route as AuthenticatedEscanearRouteImport } from './routes/_authenticated/escanear'
+import { Route as AuthenticatedInicioRouteImport } from './routes/_authenticated/inicio'
+import { Route as AuthenticatedMapaRouteImport } from './routes/_authenticated/mapa'
+import { Route as AuthenticatedListaIndexRouteImport } from './routes/_authenticated/lista.index'
+import { Route as AuthenticatedListaIdRouteImport } from './routes/_authenticated/lista.$id'
+import { Route as AuthenticatedProdutoIdRouteImport } from './routes/_authenticated/produto.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedCompararRoute = AuthenticatedCompararRouteImport.update({
+  id: '/comparar',
+  path: '/comparar',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedEscanearRoute = AuthenticatedEscanearRouteImport.update({
+  id: '/escanear',
+  path: '/escanear',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedInicioRoute = AuthenticatedInicioRouteImport.update({
+  id: '/inicio',
+  path: '/inicio',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedMapaRoute = AuthenticatedMapaRouteImport.update({
+  id: '/mapa',
+  path: '/mapa',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedListaIndexRoute = AuthenticatedListaIndexRouteImport.update({
+  id: '/lista/',
+  path: '/lista/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedListaIdRoute = AuthenticatedListaIdRouteImport.update({
+  id: '/lista/$id',
+  path: '/lista/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedProdutoIdRoute = AuthenticatedProdutoIdRouteImport.update({
+  id: '/produto/$id',
+  path: '/produto/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/comparar': typeof AuthenticatedCompararRoute
+  '/escanear': typeof AuthenticatedEscanearRoute
+  '/inicio': typeof AuthenticatedInicioRoute
+  '/mapa': typeof AuthenticatedMapaRoute
+  '/lista/$id': typeof AuthenticatedListaIdRoute
+  '/produto/$id': typeof AuthenticatedProdutoIdRoute
+  '/lista/': typeof AuthenticatedListaIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/comparar': typeof AuthenticatedCompararRoute
+  '/escanear': typeof AuthenticatedEscanearRoute
+  '/inicio': typeof AuthenticatedInicioRoute
+  '/mapa': typeof AuthenticatedMapaRoute
+  '/lista/$id': typeof AuthenticatedListaIdRoute
+  '/produto/$id': typeof AuthenticatedProdutoIdRoute
+  '/lista': typeof AuthenticatedListaIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/_authenticated/comparar': typeof AuthenticatedCompararRoute
+  '/_authenticated/escanear': typeof AuthenticatedEscanearRoute
+  '/_authenticated/inicio': typeof AuthenticatedInicioRoute
+  '/_authenticated/mapa': typeof AuthenticatedMapaRoute
+  '/_authenticated/lista/$id': typeof AuthenticatedListaIdRoute
+  '/_authenticated/produto/$id': typeof AuthenticatedProdutoIdRoute
+  '/_authenticated/lista/': typeof AuthenticatedListaIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/comparar'
+    | '/escanear'
+    | '/inicio'
+    | '/mapa'
+    | '/lista/$id'
+    | '/produto/$id'
+    | '/lista/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/auth'
+    | '/comparar'
+    | '/escanear'
+    | '/inicio'
+    | '/mapa'
+    | '/lista/$id'
+    | '/produto/$id'
+    | '/lista'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/comparar'
+    | '/_authenticated/escanear'
+    | '/_authenticated/inicio'
+    | '/_authenticated/mapa'
+    | '/_authenticated/lista/$id'
+    | '/_authenticated/produto/$id'
+    | '/_authenticated/lista/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +157,99 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/comparar': {
+      id: '/_authenticated/comparar'
+      path: '/comparar'
+      fullPath: '/comparar'
+      preLoaderRoute: typeof AuthenticatedCompararRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/escanear': {
+      id: '/_authenticated/escanear'
+      path: '/escanear'
+      fullPath: '/escanear'
+      preLoaderRoute: typeof AuthenticatedEscanearRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/inicio': {
+      id: '/_authenticated/inicio'
+      path: '/inicio'
+      fullPath: '/inicio'
+      preLoaderRoute: typeof AuthenticatedInicioRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/mapa': {
+      id: '/_authenticated/mapa'
+      path: '/mapa'
+      fullPath: '/mapa'
+      preLoaderRoute: typeof AuthenticatedMapaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/lista/': {
+      id: '/_authenticated/lista/'
+      path: '/lista'
+      fullPath: '/lista/'
+      preLoaderRoute: typeof AuthenticatedListaIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/lista/$id': {
+      id: '/_authenticated/lista/$id'
+      path: '/lista/$id'
+      fullPath: '/lista/$id'
+      preLoaderRoute: typeof AuthenticatedListaIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/produto/$id': {
+      id: '/_authenticated/produto/$id'
+      path: '/produto/$id'
+      fullPath: '/produto/$id'
+      preLoaderRoute: typeof AuthenticatedProdutoIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedCompararRoute: typeof AuthenticatedCompararRoute
+  AuthenticatedEscanearRoute: typeof AuthenticatedEscanearRoute
+  AuthenticatedInicioRoute: typeof AuthenticatedInicioRoute
+  AuthenticatedMapaRoute: typeof AuthenticatedMapaRoute
+  AuthenticatedListaIdRoute: typeof AuthenticatedListaIdRoute
+  AuthenticatedProdutoIdRoute: typeof AuthenticatedProdutoIdRoute
+  AuthenticatedListaIndexRoute: typeof AuthenticatedListaIndexRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedCompararRoute: AuthenticatedCompararRoute,
+  AuthenticatedEscanearRoute: AuthenticatedEscanearRoute,
+  AuthenticatedInicioRoute: AuthenticatedInicioRoute,
+  AuthenticatedMapaRoute: AuthenticatedMapaRoute,
+  AuthenticatedListaIdRoute: AuthenticatedListaIdRoute,
+  AuthenticatedProdutoIdRoute: AuthenticatedProdutoIdRoute,
+  AuthenticatedListaIndexRoute: AuthenticatedListaIndexRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
