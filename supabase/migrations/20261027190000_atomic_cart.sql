@@ -78,8 +78,8 @@ BEGIN
   -- Protege o identificador idempotente contra reuso com conteúdo diferente.
   v_signature := pg_catalog.md5(pg_catalog.concat_ws('|',
     _list_id::text, _product_id::text, _store_id::text, _quantity::text,
-    pg_catalog.coalesce(_price::text, '<null>'),
-    pg_catalog.coalesce(_observed_at::text, '<null>'),
+    COALESCE(_price::text, '<null>'),
+    COALESCE(_observed_at::text, '<null>'),
     _source, _confirmed::text, _share::text
   ));
 
@@ -125,7 +125,7 @@ BEGIN
   IF FOUND THEN
     UPDATE public.shopping_list_items AS i
        SET quantity = i.quantity + _quantity,
-           unit_price = pg_catalog.coalesce(_price, i.unit_price),
+           unit_price = COALESCE(_price, i.unit_price),
            updated_at = pg_catalog.now()
      WHERE i.id = v_item_id;
   ELSE
@@ -145,8 +145,8 @@ BEGIN
       (user_id, product_id, store_id, price, observed_at, source, user_confirmed, is_public)
     VALUES
       (v_user, _product_id, _store_id, _price,
-       pg_catalog.coalesce(_observed_at, pg_catalog.now()), _source, true,
-       pg_catalog.coalesce(_share, false))
+       COALESCE(_observed_at, pg_catalog.now()), _source, true,
+       COALESCE(_share, false))
     RETURNING id INTO v_observation_id;
   END IF;
 
