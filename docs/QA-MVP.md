@@ -33,6 +33,9 @@
 | QA-18 | Conta comum tenta acessar fila ou revisar denúncia | Operação rejeitada pelo servidor |
 | QA-19 | Moderador aceita uma denúncia | Preço deixa de aparecer em produto, mapa, comparação e histórico |
 | QA-20 | Moderador rejeita denúncia | Preço permanece consultável |
+| QA-21 | Cadastrar unidade e marcar localização no mapa interno | Marcador aparece sem abrir plataformas externas |
+| QA-22 | Usuário B tenta editar localização cadastrada pela conta A | Controle de atualização bloqueia mudança no servidor |
+| QA-23 | Abrir pelo celular e usar opção Adicionar à Tela de Início | Identidade MarketPreço apresentada em navegadores compatíveis; sem prometer offline |
 
 ## Primeira rodada de testes manuais — 27/10/2026
 
@@ -45,7 +48,7 @@ O usuário confirmou que os testes realizados funcionaram e enviou capturas da p
 | Cadastro de supermercado (parte de QA-03) | **Funcionou:** unidade "Teste de Mercado" aparece na lista e na página Mapa | Unidade foi salva **sem latitude/longitude**; não aparece como marcador no mapa interno |
 | Link para cartografia externa | **Funcionou:** OpenStreetMap abriu a pesquisa do endereço cadastrado | A pesquisa apresentou vários trechos possíveis da rua, sem confirmar a localização exata do estabelecimento |
 
-**Ponto de melhoria identificado:** endereço da unidade não foi geocodificado. A interface deve permitir escolher a posição exata no mapa ou confirmar uma sugestão, sem pressupor que resultados de rua equivalem à localização exata de uma loja.
+**Ponto de melhoria identificado na primeira rodada:** endereço da unidade não foi geocodificado. A interface passou a permitir escolher a posição exata no mapa integrado, sem pressupor que resultados de rua equivalem à localização exata de uma loja. **A implementação ainda necessita validação visual/manual.**
 
 **Ainda pendentes:** testes de recarregar a lista, leitura por câmera, OCR, preços públicos, comparação, histórico, fluxo entre duas contas, moderação, navegação móvel e encerramento de sessão após a correção do botão.
 
@@ -64,7 +67,7 @@ As capturas fornecidas pelo usuário foram usadas para conferência nesta conver
 2. Investigar recuperação de senha e login social conforme configurações reais do provedor.
 3. Validar em navegador real o salvamento atômico e idempotente de preço e item, já implementado e testado em PostgreSQL temporário.
 4. Validar concorrência em dois dispositivos reais. A função já serializa operações da mesma lista por bloqueio no banco e oferece idempotência por UUID.
-5. Aplicar a migração de moderação no banco real e habilitar `MODERATION_ENABLED` somente após conferência. Depois validar denúncias por usuários e análise por moderadores.
+5. Migração da moderação aplicada e conferida no banco real em 27/10/2026. **Pendente:** atribuir moderador autorizado e executar o fluxo de denúncias com duas contas.
 6. Validar políticas do provedor de mapas/tiles e de OCR em condições de uso reais.
 
 **Estado:** primeira rodada manual realizada parcialmente em desktop (detalhes acima); testes de segurança e SQL isolados em GitHub Actions implementados. Fluxos completos, celulares e segunda conta ainda pendentes.
