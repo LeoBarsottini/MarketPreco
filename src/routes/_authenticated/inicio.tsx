@@ -72,7 +72,7 @@ function Home() {
             Encontre os melhores preços <span className="text-[#6be48a]">nos supermercados da sua região</span>
           </h1>
           <p className="mt-3 text-sm text-white/80 sm:text-base">Pesquise produtos, compare preços e economize na sua próxima compra.</p>
-          <form className="relative mt-6 flex flex-col gap-2 rounded-xl bg-white p-2 sm:flex-row" onSubmit={(e) => { e.preventDefault(); navigate({ to: "/mapa", search: { busca: search.trim() } }); }}>
+          <form className="relative mt-6 flex flex-col gap-2 rounded-xl bg-white p-2 sm:flex-row" onSubmit={(e) => { e.preventDefault(); window.location.assign(`/mapa?busca=${encodeURIComponent(search.trim())}`); }}>
             <div className="relative min-w-0 flex-1">
               <Search className="pointer-events-none absolute left-3 top-3 h-5 w-5 text-[#46647f]" aria-hidden="true" />
               <Input value={search} onChange={(e) => setSearch(e.target.value)}
