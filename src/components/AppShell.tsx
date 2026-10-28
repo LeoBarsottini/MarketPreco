@@ -1,5 +1,7 @@
-import { Link, Outlet } from "@tanstack/react-router";
-import { Home, ScanBarcode, ListChecks, MapPin, Scale, ShoppingBasket, Store, History, ChevronRight } from "lucide-react";
+import { Link, Outlet, useRouteContext } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Home, ScanBarcode, ListChecks, MapPin, Scale, ShoppingBasket, Store, History, ChevronRight, ShieldCheck } from "lucide-react";
 
 const nav = [
   { to: "/inicio", label: "Início", icon: Home },
@@ -22,14 +24,29 @@ function Brand({ inverted = false }: { inverted?: boolean }) {
 }
 
 export function AppShell() {
+  const { user } = useRouteContext({ from: "/_authenticated" });
+  const admin = useQuery({
+    queryKey: ["is-admin", user.id],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("has_role", { _user_id: user.id, _role: "admin" });
+      if (error) throw new Error(error.message);
+      return data === true;
+    },
+    staleTime: 30_000,
+  });
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 border-b border-[#084b91] bg-[#075aab] shadow-sm">
         <div className="mx-auto flex h-[66px] max-w-7xl items-center justify-between px-4 sm:px-6">
           <Brand inverted />
-          <div className="flex items-center gap-2 text-xs text-white/85">
-            <ShoppingBasket className="h-4 w-4" aria-hidden="true" />
-            <span className="hidden sm:inline">Compare. Economize. Escolha melhor.</span>
+          <div className="flex items-center gap-3 text-xs text-white/85">
+            <ShoppingBasket className="hidden h-4 w-4 sm:block" aria-hidden="true" />
+            <span className="hidden md:inline">Compare. Economize. Escolha melhor.</span>
+            {admin.data === true && (
+              <Link to="/admin" className="inline-flex items-center gap-1.5 rounded-lg border border-white/30 px-2.5 py-2 font-semibold text-white hover:bg-white/15" activeProps={{ className: "bg-white/20" }}>
+                <ShieldCheck className="h-4 w-4" aria-hidden="true" /> Administração
+              </Link>
+            )}
           </div>
         </div>
       </header>
@@ -45,6 +62,7 @@ export function AppShell() {
               </Link>
             ))}
           </nav>
+          {admin.data === true && <Link to="/admin" className="mt-5 flex items-center gap-3 rounded-xl bg-[#edf5ff] px-3 py-3 text-sm font-semibold text-[#075aab]" activeProps={{ className: "ring-2 ring-[#075aab]/30" }}><ShieldCheck className="h-5 w-5" /> Painel administrativo</Link>}
           <div className="my-5 border-t border-border" />
           <p className="mb-2 px-3 text-xs font-bold uppercase tracking-widest text-muted-foreground">Mais opções</p>
           <div className="space-y-1">
