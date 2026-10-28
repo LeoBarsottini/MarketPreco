@@ -19,7 +19,7 @@ nem testes completos de sessões em Android/iOS com contas distintas.
 | SEC-02 | Alta (integridade de produto) | `productLabel` removia zeros inteiros finais: embalagem de 500 g aparecia como 5 g e 1000 ml como 1 ml. | **Corrigido** em `src/lib/queries.ts`, com 8 testes de regressão. |
 | SEC-03 | Média/alta (integridade de SKU) | O proprietário de um produto pode mudar o código de barras e o tamanho da embalagem via atualização direta, mesmo após existir preço registrado. | **Aplicado ao banco real:** gatilho instalado e testado isoladamente. |
 | SEC-04 | Média (histórico de compras) | A interface desativa edição de uma lista concluída, mas a política RLS de `shopping_list_items` só considera propriedade, não o status. A API direta permite alteração enquanto a lista está concluída. | **Aplicado ao banco real:** gatilho instalado e testado isoladamente. Reabertura explícita continua possível. |
-| SEC-05 | Média (supply chain) | MapLibre e Tesseract.js ainda são carregados como scripts remotos do jsDelivr, sem SRI identificado e sem uma CSP específica verificada. | **Mitigado parcialmente:** um único carregador de MapLibre evita carregamentos duplicados e define prazo de espera. **Pendente:** empacotar localmente ou usar SRI e uma CSP compatível. |
+| SEC-05 | Média (supply chain) | O JavaScript do MapLibre/Tesseract era executado a partir de CDN. | **Corrigido no código:** MapLibre empacotado pelo Vite e worker/WASM do Tesseract copiados para assets locais; versões travadas em `bun.lock`. **Pendentes:** CSP adequada, homologação em dispositivos móveis e revisão dos provedores de tiles e modelo de idioma. |
 | SEC-06 | Média (abuso) | O código permite cadastramento colaborativo de preços, produtos e lojas; não foi identificada limitação de taxa da aplicação nem processo completo para lojas/produtos falsos. Controles de provedor não foram auditados. | **Mitigado parcialmente:** limites de 10 lojas/h, 30 produtos/h e 120 preços/h por conta, com autoria imutável e gatilhos instalados. **Pendentes:** controle de spam por IP, prevenção de duplicatas, monitoramento e testes de carga. |
 | SEC-07 | Média (privacidade/operação) | Não foi validado fluxo completo de exclusão/exportação de dados, retenção, política de privacidade e resposta a abuso/incidentes (LGPD). | **Pendente de produto e jurídico** antes de abrir inscrições públicas. |
 | SEC-08 | Homologação | Testes automatizados cobrem funções isoladas; ainda faltam cenários reais com duas contas, múltiplos dispositivos, câmera/OCR e concorrência no ambiente publicado. | **Pendente**. |
@@ -48,8 +48,8 @@ nem testes completos de sessões em Android/iOS com contas distintas.
 
 ## Resultado de CI e implantação
 
-- Aplicação: TypeScript, build e **48 testes** passaram no Actions em 28/10/2026
-  (8 arquivos de teste, após regressões de embalagens).
+- Aplicação: TypeScript, build e **73 testes** passaram no Actions em 28/10/2026
+  (12 arquivos de teste, incluindo autenticação, scanner e validação OCR).
 - Banco efêmero: a migração de endurecimento, revogação de privilégios
   excessivos e os gatilhos de SKU/lista concluída **passaram** em CI.
 - **Banco principal:** migração `20261028090000_security_hardening.sql`
@@ -101,3 +101,20 @@ As migrações iniciais de segurança estão aplicadas ao banco real; permanecem
 
 O fato de a aplicação compilar e as políticas RLS estarem ativas não equivale
 à certificação de ausência de vulnerabilidades.
+
+
+## Bibliotecas locais (28/10/2026)
+
+A atualização via PR [#9](https://github.com/LeoBarsottini/MarketPreco/pull/9)
+foi aprovada em CI e integrada ao ramo principal. O carregamento do mapa
+usa `import("maplibre-gl")` com CSS local. O OCR carrega a API via
+`import("tesseract.js")` e usa `workerPath` e `corePath` do próprio domínio,
+sem JavaScript remoto do jsDelivr. O script `scripts/copy-ocr-assets.mjs`
+prepara os arquivos a partir das versões fixadas no `bun.lock`.
+
+**Atenção:** o modelo de português é baixado de
+`tessdata.projectnaptha.com` na primeira utilização e o mapa continua
+consultando tiles e estilos do OpenFreeMap. As rotinas não enviam as fotos
+para o servidor do MarketPreço, mas podem transmitir metadados de rede aos
+provedores de recursos. Uma CSP restritiva e a verificação em dispositivos
+reais ainda são pendências antes de publicar o sistema.
