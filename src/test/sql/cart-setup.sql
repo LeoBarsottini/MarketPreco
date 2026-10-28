@@ -98,3 +98,8 @@ SELECT id, 'Usuário de teste' FROM auth.users;
 
 ALTER TABLE public.stores ADD COLUMN latitude double precision;
 ALTER TABLE public.stores ADD COLUMN longitude double precision;
+
+-- Campos de identidade exigidos pela proteção da migração de segurança.
+ALTER TABLE public.products ADD COLUMN barcode text;
+ALTER TABLE public.products ADD COLUMN package_size numeric;
+ALTER TABLE public.products ADD COLUMN package_unit text;
