@@ -51,3 +51,7 @@ jobs:
         run: psql -X -v ON_ERROR_STOP=1 -f supabase/migrations/20261027193000_price_moderation.sql
       - name: Validar privilégios e bloqueio de preços denunciados
         run: psql -X -v ON_ERROR_STOP=1 -f src/test/sql/moderation-assertions.sql
+      - name: Aplicar migração do painel administrativo
+        run: psql -X -v ON_ERROR_STOP=1 -f supabase/migrations/20261028080000_admin_console.sql
+      - name: Validar acesso administrativo, moderadores e auditoria
+        run: psql -X -v ON_ERROR_STOP=1 -f src/test/sql/admin-assertions.sql
