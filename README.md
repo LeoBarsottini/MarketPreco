@@ -91,7 +91,7 @@ Os preços ocultados não aparecem no mapa, na comparação e no histórico.
 
 **Situação atual:** a migração foi aplicada ao banco Lovable Cloud em 27/10/2026. As funções `report_price_observation`, `pending_price_reports` e `review_price_report` estão disponíveis, os privilégios de execução foram conferidos e a interface está habilitada por `MODERATION_ENABLED = true`.
 
-**Pendência administrativa:** ainda não existe conta com papel de administrador ou moderador. Para analisar denúncias, o proprietário precisa aprovar explicitamente a concessão desse papel a uma conta autorizada.
+**Administração:** uma conta de testes autorizada recebeu o papel de administrador em 28/10/2026. A gestão de moderadores e suas decisões continuam protegidas por verificações no banco.
 
 A migração é testada em um PostgreSQL efêmero pelo GitHub Actions; ela não
 cria observações de teste no banco principal.
@@ -139,14 +139,20 @@ as revogações de acesso anônimo foram confirmados. Os testes de PostgreSQL
 isolado também passaram.
 
 **Ainda é homologação:** falta validar duas contas reais, scanner/OCR em
-dispositivos móveis, execução de scripts externos e os direitos de privacidade
-antes de publicar o site para novos usuários.
+dispositivos móveis, os recursos de terceiros de dados e tiles e os direitos de
+privacidade antes de publicar o site para novos usuários.
+
+**Bibliotecas de mapa e OCR:** o JavaScript e o CSS do MapLibre são empacotados
+pelo Vite; o worker e os arquivos WebAssembly do Tesseract são copiados de
+pacotes npm para `/vendor/tesseract/` antes do build. O **modelo de idioma
+português** e os **dados cartográficos** ainda dependem de serviços externos.
+O funcionamento completo precisa de homologação no navegador e no celular.
 
 ## Próximas etapas
 
 - Validar autenticação e operações de compra de ponta a ponta;
 - validar no navegador o mapa interativo, a leitura OCR das etiquetas e os gráficos históricos;
-- atribuir um administrador autorizado e validar denúncias entre duas contas; melhorar prevenção de abuso;
+- validar denúncias entre duas contas autorizadas e aperfeiçoar prevenção de abuso;
 - preparar ícones PNG de instalação, comportamento offline seguro e persistência local para visitantes;
 - ampliar testes em navegadores móveis e segurança do backend.
 
