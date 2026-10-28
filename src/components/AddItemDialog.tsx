@@ -16,6 +16,7 @@ import { listsQuery, productLabel, storesQuery, type Product, type Store } from 
 import { formatBRL, lineSubtotal, parseDecimal } from "@/lib/money";
 import { createAtomicCartArgs, type AtomicCartArgs } from "@/lib/cart-command";
 import { ChevronLeft, Plus, ScanBarcode, Search, Store as StoreIcon } from "lucide-react";
+import { sanitizeCatalogSearch } from "@/lib/catalog-validation";
 
 type Step = "list" | "store" | "product" | "price";
 
@@ -172,7 +173,7 @@ export function ProductStep({ onPick }: { onPick: (p: Product) => void }) {
     queryKey: ["products", "search", q.trim()],
     enabled: q.trim().length >= 2,
     queryFn: async () => {
-      const t = q.trim().replace(/[%_,()]/g, " ");
+      const t = sanitizeCatalogSearch(q);
       const { data, error } = await supabase.from("products").select("*").or(`name.ilike.%${t}%,brand.ilike.%${t}%,barcode.eq.${t.replace(/\D/g, "") || "0"}`).order("name").limit(30);
       if (error) throw error;
       return data;
