@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LocationPicker } from "@/components/LocationPicker";
+import { normalizedStore } from "@/lib/catalog-validation";
 import type { Store } from "@/lib/queries";
 
 export function StoreForm({ onCreated }: { onCreated: (s: Store) => void }) {
@@ -16,18 +17,10 @@ export function StoreForm({ onCreated }: { onCreated: (s: Store) => void }) {
 
   const m = useMutation({
     mutationFn: async () => {
+      const payload = normalizedStore(f, coords);
       const { data, error } = await supabase
         .from("stores")
-        .insert({
-          name: f.name.trim(),
-          chain: f.chain.trim() || null,
-          address: f.address.trim(),
-          neighborhood: f.neighborhood.trim() || null,
-          city: f.city.trim(),
-          state: f.state.trim().toUpperCase() || null,
-          latitude: coords?.lat ?? null,
-          longitude: coords?.lng ?? null,
-        })
+        .insert(payload)
         .select()
         .single();
       if (error) throw error;
@@ -50,12 +43,12 @@ export function StoreForm({ onCreated }: { onCreated: (s: Store) => void }) {
         m.mutate();
       }}
     >
-      <F label="Nome da unidade *"><Input required minLength={2} value={f.name} onChange={set("name")} placeholder="Ex.: Mercado Bom Preço – Centro" /></F>
-      <F label="Rede (opcional)"><Input value={f.chain} onChange={set("chain")} /></F>
-      <F label="Endereço *"><Input required minLength={3} value={f.address} onChange={set("address")} placeholder="Rua, número" /></F>
+      <F label="Nome da unidade *"><Input required minLength={2} maxLength={120} value={f.name} onChange={set("name")} placeholder="Ex.: Mercado Bom Preço – Centro" /></F>
+      <F label="Rede (opcional)"><Input maxLength={120} value={f.chain} onChange={set("chain")} /></F>
+      <F label="Endereço *"><Input required minLength={3} maxLength={200} value={f.address} onChange={set("address")} placeholder="Rua, número" /></F>
       <div className="grid grid-cols-[1fr_1fr_4.5rem] gap-2">
-        <F label="Bairro"><Input value={f.neighborhood} onChange={set("neighborhood")} /></F>
-        <F label="Cidade *"><Input required minLength={2} value={f.city} onChange={set("city")} /></F>
+        <F label="Bairro"><Input maxLength={120} value={f.neighborhood} onChange={set("neighborhood")} /></F>
+        <F label="Cidade *"><Input required minLength={2} maxLength={80} value={f.city} onChange={set("city")} /></F>
         <F label="UF"><Input maxLength={2} value={f.state} onChange={set("state")} /></F>
       </div>
       <LocationPicker value={coords} onChange={setCoords} />
