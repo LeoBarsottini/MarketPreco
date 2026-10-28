@@ -1,14 +1,3 @@
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
-
+# MarketPreço está em homologação. Revisar antes do lançamento público.
 User-agent: *
-Allow: /
+Disallow: /
