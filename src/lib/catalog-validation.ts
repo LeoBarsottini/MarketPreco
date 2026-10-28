@@ -77,3 +77,16 @@ export function normalizedStore(draft: StoreDraft, coords: Coords) {
     longitude: coords?.lng ?? null,
   };
 }
+
+/**
+ * Only include plain words in the PostgREST .or(...) filter expression.
+ * This prevents filter syntax (commas, dots, parentheses, wildcards) from
+ * being interpreted as part of the query rather than as user input.
+ */
+export function sanitizeCatalogSearch(raw: string): string {
+  return raw.trim()
+    .replace(/[^a-zA-Z0-9À-ÿ -]/g, " ")
+    .replace(/\s+/g, " ")
+    .slice(0, 60)
+    .trim();
+}
