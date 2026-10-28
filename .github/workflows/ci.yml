@@ -24,3 +24,14 @@ jobs:
         run: bun run test
       - name: Build
         run: bun run build
+      - name: Verificar recursos locais de mapa e OCR
+        run: |
+          test -s public/vendor/tesseract/worker.min.js
+          for name in tesseract-core tesseract-core-simd tesseract-core-lstm tesseract-core-simd-lstm; do
+            test -s "public/vendor/tesseract/${name}.wasm.js"
+            test -s "public/vendor/tesseract/${name}.wasm"
+          done
+          if grep -E 'cdn\\.jsdelivr\\.net|<script[^>]+src' src/lib/maplibre-loader.ts src/components/PriceLabelOCR.tsx; then
+            echo "Script de terceiro encontrado na inicialização do mapa/OCR" >&2
+            exit 1
+          fi
