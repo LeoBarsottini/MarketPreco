@@ -64,6 +64,8 @@ export const priceHistoryQuery = (productId: string, periodDays: 30 | 90 | 365) 
   });
 
 export function productLabel(p: Pick<Product, "name" | "brand" | "package_size" | "package_unit">) {
-  const pack = p.package_size ? ` ${String(p.package_size).replace(".", ",").replace(/,?0+$/, "")}${p.package_unit ?? ""}` : "";
+  const size = p.package_size == null ? null
+    : String(p.package_size).replace(/(\\.\\d*?[1-9])0+$|\\.0+$/, "$1").replace(".", ",");
+  const pack = size == null ? "" : ` ${size}${p.package_unit ?? ""}`;
   return `${p.name}${p.brand ? " · " + p.brand : ""}${pack}`;
 }
