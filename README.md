@@ -120,6 +120,24 @@ As ações continuam sujeitas às políticas RLS e à verificação das funçõe
 **Pendente:** confirmar o painel visualmente com uma sessão autenticada e testar o
 fluxo de revisão com uma segunda conta, sem divulgar preços fictícios.
 
+## Revisão de segurança (28/10/2026)
+
+Foi realizada uma revisão estática e de permissões do banco.
+**O MarketPreço ainda não está liberado para publicação pública.**
+Consulte [o relatório de segurança](docs/SECURITY-REVIEW-2026-10-28.md)
+para os riscos identificados, as correções e os testes.
+
+A formatação de tamanhos de embalagem foi corrigida e os testes automatizados
+foram ampliados. A migração
+`supabase/migrations/20261028090000_security_hardening.sql`
+revoga privilégios anônimos desnecessários e protege identidades de produtos
+com preços registrados e itens de listas concluídas.
+
+**Importante:** a migração de endurecimento passou em PostgreSQL efêmero,
+mas **NÃO foi aplicada ao banco principal**, porque o Lovable recusou
+a operação por limite temporário de ações do plano. Essas proteções
+adicionais ainda precisam ser ativadas e verificadas no banco real.
+
 ## Próximas etapas
 
 - Validar autenticação e operações de compra de ponta a ponta;
