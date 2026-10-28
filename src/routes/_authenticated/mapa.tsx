@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { loadMapLibre, type MarketMap } from "@/lib/maplibre-loader";
+import { sanitizeCatalogSearch } from "@/lib/catalog-validation";
 
 type PriceRow = Database["public"]["Functions"]["public_prices_for_product"]["Returns"][number];
 
@@ -101,7 +102,7 @@ function MapPage() {
     enabled: !selectedProduct && productSearch.trim().length >= 2,
     queryFn: async () => {
       // Remove caracteres especiais dos filtros PostgREST.
-      const query = productSearch.trim().replace(/[^a-zA-Z0-9À-ÿ -]/g, " ").slice(0, 60).trim();
+      const query = sanitizeCatalogSearch(productSearch);
       if (query.length < 2) return [] as ProductOption[];
       const predicates = [
         `name.ilike.%${query}%`,
