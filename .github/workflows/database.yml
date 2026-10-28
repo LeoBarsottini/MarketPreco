@@ -63,3 +63,7 @@ jobs:
         run: psql -X -v ON_ERROR_STOP=1 -f supabase/migrations/20261028090000_security_hardening.sql
       - name: Conferir revogações e bloqueio de alterações indevidas
         run: psql -X -v ON_ERROR_STOP=1 -f src/test/sql/security-hardening-assertions.sql
+      - name: Aplicar proteção contra abuso de contribuições
+        run: psql -X -v ON_ERROR_STOP=1 -f supabase/migrations/20261028100000_contribution_limits.sql
+      - name: Validar limites por conta e proteção contra falsificação
+        run: psql -X -v ON_ERROR_STOP=1 -f src/test/sql/contribution-limits-assertions.sql
