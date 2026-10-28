@@ -15,12 +15,12 @@ nem testes completos de sessões em Android/iOS com contas distintas.
 
 | ID | Severidade | Achado | Situação |
 |---|---|---|---|
-| SEC-01 | Média/alta (defesa em profundidade) | O banco real concede `ALL` sobre várias tabelas à role `anon`. **RLS está ativa** e as políticas principais se restringem a `authenticated`; não foi demonstrado vazamento anônimo, mas o privilégio é desnecessário e aumenta o impacto de futuras políticas incorretas. | Correção em `20261028090000_security_hardening.sql`; testes isolados aprovados. **Pendente aplicação ao banco real por limite do Lovable.** |
+| SEC-01 | Média/alta (defesa em profundidade) | O banco real concede `ALL` sobre várias tabelas à role `anon`. **RLS está ativa** e as políticas principais se restringem a `authenticated`; não foi demonstrado vazamento anônimo, mas o privilégio é desnecessário e aumenta o impacto de futuras políticas incorretas. | **Aplicada ao banco real:** revogações verificadas e testes isolados aprovados. |
 | SEC-02 | Alta (integridade de produto) | `productLabel` removia zeros inteiros finais: embalagem de 500 g aparecia como 5 g e 1000 ml como 1 ml. | **Corrigido** em `src/lib/queries.ts`, com 8 testes de regressão. |
-| SEC-03 | Média/alta (integridade de SKU) | O proprietário de um produto pode mudar o código de barras e o tamanho da embalagem via atualização direta, mesmo após existir preço registrado. | Gatilho de proteção criado, testado isoladamente; **pendente banco real**. |
-| SEC-04 | Média (histórico de compras) | A interface desativa edição de uma lista concluída, mas a política RLS de `shopping_list_items` só considera propriedade, não o status. A API direta permite alteração enquanto a lista está concluída. | Gatilho que bloqueia inserção/edição/exclusão em listas concluídas criado e testado; **pendente banco real**. Reabertura explícita continua possível. |
+| SEC-03 | Média/alta (integridade de SKU) | O proprietário de um produto pode mudar o código de barras e o tamanho da embalagem via atualização direta, mesmo após existir preço registrado. | **Aplicado ao banco real:** gatilho instalado e testado isoladamente. |
+| SEC-04 | Média (histórico de compras) | A interface desativa edição de uma lista concluída, mas a política RLS de `shopping_list_items` só considera propriedade, não o status. A API direta permite alteração enquanto a lista está concluída. | **Aplicado ao banco real:** gatilho instalado e testado isoladamente. Reabertura explícita continua possível. |
 | SEC-05 | Média (supply chain) | MapLibre e Tesseract.js ainda são carregados como scripts remotos do jsDelivr, sem SRI identificado e sem uma CSP específica verificada. | **Mitigado parcialmente:** um único carregador de MapLibre evita carregamentos duplicados e define prazo de espera. **Pendente:** empacotar localmente ou usar SRI e uma CSP compatível. |
-| SEC-06 | Média (abuso) | O código permite cadastramento colaborativo de preços, produtos e lojas; não foi identificada limitação de taxa da aplicação nem processo completo para lojas/produtos falsos. Controles de provedor não foram auditados. | **Pendente:** limites por usuário, bloqueio de spam, revisão de duplicatas, monitoramento e testes de carga. |
+| SEC-06 | Média (abuso) | O código permite cadastramento colaborativo de preços, produtos e lojas; não foi identificada limitação de taxa da aplicação nem processo completo para lojas/produtos falsos. Controles de provedor não foram auditados. | **Mitigado parcialmente:** limites de 10 lojas/h, 30 produtos/h e 120 preços/h por conta, com autoria imutável e gatilhos instalados. **Pendentes:** controle de spam por IP, prevenção de duplicatas, monitoramento e testes de carga. |
 | SEC-07 | Média (privacidade/operação) | Não foi validado fluxo completo de exclusão/exportação de dados, retenção, política de privacidade e resposta a abuso/incidentes (LGPD). | **Pendente de produto e jurídico** antes de abrir inscrições públicas. |
 | SEC-08 | Homologação | Testes automatizados cobrem funções isoladas; ainda faltam cenários reais com duas contas, múltiplos dispositivos, câmera/OCR e concorrência no ambiente publicado. | **Pendente**. |
 
@@ -52,11 +52,16 @@ nem testes completos de sessões em Android/iOS com contas distintas.
   (8 arquivos de teste, após regressões de embalagens).
 - Banco efêmero: a migração de endurecimento, revogação de privilégios
   excessivos e os gatilhos de SKU/lista concluída **passaram** em CI.
-- **Banco principal:** a tentativa de aplicar
-  `supabase/migrations/20261028090000_security_hardening.sql` foi recusada
-  pelo limite temporário de ações do Lovable; o provedor confirmou que
-  **essa migração não foi executada**. Não afirmar que o banco real já
-  possui essas proteções. O código de formatação já foi atualizado no GitHub.
+- **Banco principal:** migração `20261028090000_security_hardening.sql`
+  aplicada e verificada em 28/10/2026: revogações e dois gatilhos presentes.
+- **Prevenção inicial de abuso:** migração
+  `20261028100000_contribution_limits.sql` aplicada e os seis
+  gatilhos confirmados. A consulta final de contagem de dados foi interrompida
+  pelo novo limite temporário de ações do Lovable; a migração não tem
+  comandos de exclusão/alteração de registros existentes.
+- **Limites da verificação:** a aplicação real dos gatilhos na interação
+  entre duas contas ainda deve ser homologada, embora as verificações
+  automatizadas em Postgres isolado tenham passado.
 
 ## Complementações de código sem uso do banco (28/10/2026)
 
@@ -77,12 +82,12 @@ nem testes completos de sessões em Android/iOS com contas distintas.
   legal pronto para publicação**.
 
 Estas melhorias não executaram migrações nem criaram usuários ou preços.
-A pendência de segurança no banco principal permanece.
+As migrações iniciais de segurança estão aplicadas ao banco real; permanecem pendentes os testes com duas contas, a auditoria de terceiros e a prevenção de abuso em camadas adicionais.
 
 ## Critérios para avançar
 
-1. Aplicar a migração pendente ao banco real assim que disponível, confirmar
-   ACL de `anon` e a existência dos dois gatilhos sem criar dados fictícios.
+1. **Concluído:** migrações de segurança aplicadas ao banco real, com
+   permissões e gatilhos conferidos; confirmar bloqueios em teste com duas contas.
 2. Realizar testes de dois usuários, com separação de listas, preços privados,
    permissões e denúncias, em ambiente controlado.
 3. Testar scanner, OCR, mapa e sincronização no Android e no iPhone; corrigir
