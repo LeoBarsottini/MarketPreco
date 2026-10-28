@@ -37,6 +37,25 @@
 | QA-22 | Usuário B tenta editar localização cadastrada pela conta A | Controle de atualização bloqueia mudança no servidor |
 | QA-23 | Abrir pelo celular e usar opção Adicionar à Tela de Início | Identidade MarketPreço apresentada em navegadores compatíveis; sem prometer offline |
 
+## Administração — testes adicionais (28/10/2026)
+
+A migração `20261028080000_admin_console.sql` foi aplicada ao banco do projeto.
+O GitHub Actions executou testes de SQL isolados para autorização, indicadores,
+concessão/revogação de moderadores, operações repetidas e auditoria.
+
+| ID | Ação | Resultado esperado |
+| --- | --- | --- |
+| QA-24 | Usuário padrão abre diretamente `/admin` | Acesso restrito; sem métricas ou dados administrativos |
+| QA-25 | Administrador abre `/admin` | Indicadores reais e abas Denúncias, Lojas, Produtos e Usuários |
+| QA-26 | Administrador corrige posição de loja | Marcador atualizado no mapa e persistido após atualizar página |
+| QA-27 | Administrador altera nome ou marca de produto | Catálogo atualizado, preservando GTIN e quantidade da embalagem |
+| QA-28 | Administrador autoriza moderador em segunda conta | Confirmação obrigatória, mudança efetivada e registrada em auditoria |
+| QA-29 | Administrador revoga moderação | Segunda conta perde acesso à fila; alteração registrada |
+| QA-30 | Usuário padrão tenta executar RPCs administrativos | Banco rejeita a operação; nenhuma permissão é modificada |
+
+**Estado:** validação automatizada do SQL aprovada; estes cenários em navegador
+ainda precisam de execução com uma segunda conta para confirmar o comportamento completo.
+
 ## Primeira rodada de testes manuais — 27/10/2026
 
 O usuário confirmou que os testes realizados funcionaram e enviou capturas da prévia do Lovable no navegador desktop. **Observado nas telas:**
