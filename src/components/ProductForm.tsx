@@ -6,8 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { parseDecimal } from "@/lib/money";
-import { cleanBarcode, isValidGtin } from "@/lib/gtin";
+import { normalizedProduct } from "@/lib/catalog-validation";
 import type { Product } from "@/lib/queries";
 
 export function ProductForm({ initialBarcode, initialName, onCreated }: { initialBarcode?: string; initialName?: string; onCreated: (p: Product) => void }) {
@@ -20,13 +19,10 @@ export function ProductForm({ initialBarcode, initialName, onCreated }: { initia
 
   const m = useMutation({
     mutationFn: async () => {
-      const code = cleanBarcode(barcode);
-      if (code && !isValidGtin(code)) throw new Error("Código de barras inválido.");
-      const pkg = size ? parseDecimal(size) : null;
-      if (size && (pkg == null || pkg <= 0)) throw new Error("Tamanho da embalagem inválido.");
+      const payload = normalizedProduct({ name, brand, size, unit, barcode });
       const { data, error } = await supabase
         .from("products")
-        .insert({ name: name.trim(), brand: brand.trim() || null, package_size: pkg, package_unit: pkg ? unit : null, barcode: code || null })
+        .insert(payload)
         .select()
         .single();
       if (error) {
@@ -45,10 +41,10 @@ export function ProductForm({ initialBarcode, initialName, onCreated }: { initia
 
   return (
     <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); m.mutate(); }}>
-      <div className="space-y-1"><Label className="text-xs">Nome *</Label><Input required minLength={2} value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex.: Arroz branco tipo 1" /></div>
-      <div className="space-y-1"><Label className="text-xs">Marca</Label><Input value={brand} onChange={(e) => setBrand(e.target.value)} /></div>
+      <div className="space-y-1"><Label className="text-xs">Nome *</Label><Input required minLength={2} maxLength={120} value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex.: Arroz branco tipo 1" /></div>
+      <div className="space-y-1"><Label className="text-xs">Marca</Label><Input maxLength={120} value={brand} onChange={(e) => setBrand(e.target.value)} /></div>
       <div className="grid grid-cols-[1fr_6rem] gap-2">
-        <div className="space-y-1"><Label className="text-xs">Embalagem</Label><Input inputMode="decimal" value={size} onChange={(e) => setSize(e.target.value)} placeholder="5" /></div>
+        <div className="space-y-1"><Label className="text-xs">Embalagem</Label><Input inputMode="decimal" maxLength={22} value={size} onChange={(e) => setSize(e.target.value)} placeholder="5" /></div>
         <div className="space-y-1">
           <Label className="text-xs">Unidade</Label>
           <Select value={unit} onValueChange={setUnit}>
@@ -57,7 +53,7 @@ export function ProductForm({ initialBarcode, initialName, onCreated }: { initia
           </Select>
         </div>
       </div>
-      <div className="space-y-1"><Label className="text-xs">Código de barras (opcional)</Label><Input inputMode="numeric" value={barcode} onChange={(e) => setBarcode(e.target.value)} /></div>
+      <div className="space-y-1"><Label className="text-xs">Código de barras (opcional)</Label><Input inputMode="numeric" maxLength={20} autoComplete="off" value={barcode} onChange={(e) => setBarcode(e.target.value)} /></div>
       <Button type="submit" className="w-full" disabled={m.isPending}>Salvar produto</Button>
     </form>
   );
