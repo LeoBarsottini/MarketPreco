@@ -56,6 +56,32 @@ concessão/revogação de moderadores, operações repetidas e auditoria.
 **Estado:** validação automatizada do SQL aprovada; estes cenários em navegador
 ainda precisam de execução com uma segunda conta para confirmar o comportamento completo.
 
+## Rodada automatizada de segurança e interface — 28/10/2026
+
+**Resultado:** 40 testes de aplicação aprovados (Vitest, sete arquivos); TypeScript
+e build aprovados no GitHub Actions. O PostgreSQL efêmero do CI também aprovou
+os cenários de transação, moderação, administração e auditoria.
+
+**Banco real, sem alterar dados:** foram executadas transações `READ ONLY` sob
+os papéis `anon` e `authenticated`, simulando ausência de login,
+usuário sem privilégios e usuário com papel administrativo. Confirmou-se:
+
+- acessos de anônimo a `admin_dashboard_overview`, `admin_list_members` e
+  `admin_set_moderator` são negados;
+- usuário sem papel administrativo não consulta indicadores, membros nem
+  altera papéis;
+- conta administradora pode executar consultas permitidas sem modificações;
+- as consultas retornam dados derivados do banco real, e não valores inventados.
+
+**Interface, com RPCs simuladas:** adicionados quatro testes em
+`src/test/admin-console.test.tsx` para o bloqueio de usuários comuns, erro de
+permissão, exibição das abas e indicadores para administrador e falha na consulta
+dos indicadores. Estes testes não acessam o banco real.
+
+**Limites:** nenhum teste automatizado comprova câmera, OCR, aparência visual em
+Android/iOS, sessão de login real ou interação entre duas contas. Esses cenários
+continuam pendentes para aprovação do MVP.
+
 ## Primeira rodada de testes manuais — 27/10/2026
 
 O usuário confirmou que os testes realizados funcionaram e enviou capturas da prévia do Lovable no navegador desktop. **Observado nas telas:**
