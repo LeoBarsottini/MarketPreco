@@ -174,6 +174,7 @@ export function ProductStep({ onPick }: { onPick: (p: Product) => void }) {
     enabled: q.trim().length >= 2,
     queryFn: async () => {
       const t = sanitizeCatalogSearch(q);
+      if (t.length < 2) return [] as Product[];
       const { data, error } = await supabase.from("products").select("*").or(`name.ilike.%${t}%,brand.ilike.%${t}%,barcode.eq.${t.replace(/\D/g, "") || "0"}`).order("name").limit(30);
       if (error) throw error;
       return data;
