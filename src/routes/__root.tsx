@@ -67,6 +67,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "apple-mobile-web-app-title", content: "MarketPreço" },
       { title: "MarketPreço" },
       { name: "description", content: "Preços de supermercado registrados pela comunidade." },
+      { name: "robots", content: "noindex, nofollow, noarchive" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
