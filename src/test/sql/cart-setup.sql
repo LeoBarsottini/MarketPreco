@@ -86,3 +86,12 @@ INSERT INTO public.user_roles(user_id,role) VALUES
   ('11111111-1111-4111-8111-111111111111','user'),
   ('22222222-2222-4222-8222-222222222222','moderator'),
   ('88888888-1111-4888-8888-888888888888','user');
+
+-- Perfis públicos mínimos para testes isolados do painel administrativo.
+CREATE TABLE public.profiles (
+  id uuid PRIMARY KEY REFERENCES auth.users(id),
+  display_name text,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+INSERT INTO public.profiles (id, display_name)
+SELECT id, 'Usuário de teste' FROM auth.users;
