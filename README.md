@@ -100,6 +100,26 @@ cria observações de teste no banco principal.
 
 O arquivo `public/manifest.webmanifest` e os metadados no documento definem o nome, o ícone vetorial e a cor do MarketPreço para instalação pelo navegador compatível. **Ainda não existe modo offline nem garantia de instalação em todos os navegadores.** Não armazenamos respostas privadas da API em cache de serviço.
 
+## Painel administrativo
+
+A rota `/admin` aparece no cabeçalho e no menu lateral **somente para administradores**.
+O acesso é confirmado no cliente, mas **os privilégios reais são verificados no PostgreSQL**
+pelas funções `admin_dashboard_overview`, `admin_list_members` e
+`admin_set_moderator`, definidas em
+`supabase/migrations/20261028080000_admin_console.sql`.
+Essa migração foi aplicada ao banco do projeto e os privilégios foram conferidos.
+
+O painel oferece indicadores de registros reais, fila de denúncias, revisão de coordenadas
+de supermercados, correção de nomes/marcas dos produtos e gestão de moderadores.
+A lista administrativa mostra nomes de exibição e papel, **não expõe e-mails, senhas nem
+históricos pessoais de compras**. Conceder ou revogar moderação exige confirmação na tela.
+Cada mudança efetiva é registrada na tabela protegida `admin_role_audit`.
+A interface não permite elevar contas ao papel de administrador nem editar o próprio papel.
+As ações continuam sujeitas às políticas RLS e à verificação das funções no servidor.
+
+**Pendente:** confirmar o painel visualmente com uma sessão autenticada e testar o
+fluxo de revisão com uma segunda conta, sem divulgar preços fictícios.
+
 ## Próximas etapas
 
 - Validar autenticação e operações de compra de ponta a ponta;
