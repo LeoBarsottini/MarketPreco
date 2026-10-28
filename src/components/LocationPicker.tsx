@@ -1,49 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { loadMapLibre, type MarketMap, type MarketMarker, type MapLibreRuntime } from "@/lib/maplibre-loader";
 
 export type ShopCoordinates = { lat: number; lng: number };
-
-type PickerMap = {
-  on: (event: "click", handler: (event: { lngLat: { lat: number; lng: number } }) => void) => void;
-  remove: () => void;
-  addControl: (control: unknown) => void;
-  flyTo: (options: { center: [number, number]; zoom: number }) => void;
-};
-type PickerMarker = {
-  setLngLat: (coords: [number, number]) => PickerMarker;
-  addTo: (map: PickerMap) => PickerMarker;
-  remove: () => void;
-};
-type PickerLib = {
-  Map: new (options: { container: HTMLElement; style: string; center: [number, number]; zoom: number }) => PickerMap;
-  Marker: new (options: { color: string }) => PickerMarker;
-  NavigationControl: new () => unknown;
-};
-
-const SRC = "https://cdn.jsdelivr.net/npm/maplibre-gl@5.6.1/dist/maplibre-gl.js";
-const CSS = "https://cdn.jsdelivr.net/npm/maplibre-gl@5.6.1/dist/maplibre-gl.css";
-
-async function loadMap(): Promise<PickerLib> {
-  const win = window as unknown as { maplibregl?: PickerLib };
-  if (win.maplibregl) return win.maplibregl;
-  if (!document.querySelector('link[data-marketpreco-maplibre]')) {
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = CSS;
-    link.setAttribute("data-marketpreco-maplibre", "true");
-    document.head.appendChild(link);
-  }
-  return new Promise<PickerLib>((resolve, reject) => {
-    const existing = document.querySelector<HTMLScriptElement>('script[src="' + SRC + '"]');
-    const script = existing ?? document.createElement("script");
-    const done = () => win.maplibregl ? resolve(win.maplibregl) : reject(new Error("Não foi possível iniciar o mapa."));
-    script.addEventListener("load", done, { once: true });
-    script.addEventListener("error", () => reject(new Error("Falha ao carregar o mapa.")), { once: true });
-    if (!existing) { script.src = SRC; document.head.appendChild(script); }
-    if (win.maplibregl) done();
-  });
-}
 
 export function validShopCoordinates(value: ShopCoordinates | null): value is ShopCoordinates {
   return value !== null && Number.isFinite(value.lat) && Number.isFinite(value.lng) &&
@@ -60,14 +20,15 @@ export function LocationPicker({
   const holder = useRef<HTMLDivElement>(null);
   const callback = useRef(onChange);
   callback.current = onChange;
-  const mapRef = useRef<PickerMap | null>(null);
-  const markerRef = useRef<PickerMarker | null>(null);
+  const mapRef = useRef<MarketMap | null>(null);
+  const libraryRef = useRef<MapLibreRuntime | null>(null);
+  const markerRef = useRef<MarketMarker | null>(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
     let cancelled = false;
-    let instance: PickerMap | null = null;
-    void loadMap().then((lib) => {
+    let instance: MarketMap | null = null;
+    void loadMapLibre().then((lib) => {
       if (cancelled || !holder.current) return;
       instance = new lib.Map({
         container: holder.current, style: "https://tiles.openfreemap.org/styles/liberty",
@@ -75,6 +36,7 @@ export function LocationPicker({
         zoom: validShopCoordinates(value) ? 16 : 10,
       });
       mapRef.current = instance;
+      libraryRef.current = lib;
       instance.addControl(new lib.NavigationControl());
       if (validShopCoordinates(value)) markerRef.current = new lib.Marker({ color: "#075aab" })
         .setLngLat([value.lng, value.lat]).addTo(instance);
@@ -84,16 +46,16 @@ export function LocationPicker({
     }).catch((reason: unknown) => {
       if (!cancelled) setError(reason instanceof Error ? reason.message : "Mapa indisponível.");
     });
-    return () => { cancelled = true; markerRef.current?.remove(); markerRef.current = null; instance?.remove(); mapRef.current = null; };
+    return () => { cancelled = true; markerRef.current?.remove(); markerRef.current = null; instance?.remove(); mapRef.current = null; libraryRef.current = null; };
     // Map lifecycle should not restart when a marker changes.
   }, []);
 
   useEffect(() => {
     if (!validShopCoordinates(value) || !mapRef.current) return;
-    const win = window as unknown as { maplibregl?: PickerLib };
-    if (!win.maplibregl) return;
+    const lib = libraryRef.current;
+    if (!lib) return;
     markerRef.current?.remove();
-    markerRef.current = new win.maplibregl.Marker({ color: "#075aab" })
+    markerRef.current = new lib.Marker({ color: "#075aab" })
       .setLngLat([value.lng, value.lat]).addTo(mapRef.current);
   }, [value?.lat, value?.lng]);
 
