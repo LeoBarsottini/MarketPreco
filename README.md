@@ -133,10 +133,14 @@ foram ampliados. A migração
 revoga privilégios anônimos desnecessários e protege identidades de produtos
 com preços registrados e itens de listas concluídas.
 
-**Importante:** a migração de endurecimento passou em PostgreSQL efêmero,
-mas **NÃO foi aplicada ao banco principal**, porque o Lovable recusou
-a operação por limite temporário de ações do plano. Essas proteções
-adicionais ainda precisam ser ativadas e verificadas no banco real.
+**Estado em 28/10/2026:** as migrações de segurança e de controle de
+contribuições foram aplicadas ao banco principal. Os gatilhos instalados e
+as revogações de acesso anônimo foram confirmados. Os testes de PostgreSQL
+isolado também passaram.
+
+**Ainda é homologação:** falta validar duas contas reais, scanner/OCR em
+dispositivos móveis, execução de scripts externos e os direitos de privacidade
+antes de publicar o site para novos usuários.
 
 ## Próximas etapas
 
