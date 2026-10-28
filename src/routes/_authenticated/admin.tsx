@@ -50,6 +50,8 @@ function AdminPage() {
     staleTime: 30_000,
   });
 
+  const stats = overview.data;
+
   if (permission.isLoading) return <p role="status" className="text-sm text-muted-foreground">Verificando autorização administrativa…</p>;
   if (permission.isError) return <p role="alert" className="rounded-xl border p-5 text-sm text-destructive">Não foi possível verificar as permissões. Atualize a página e tente novamente.</p>;
   if (permission.data !== true) return (
@@ -70,12 +72,12 @@ function AdminPage() {
 
       {overview.isLoading && <p role="status" className="mb-5 text-sm text-muted-foreground">Carregando indicadores…</p>}
       {overview.isError && <p role="alert" className="mb-5 text-sm text-destructive">Não foi possível consultar os indicadores administrativos.</p>}
-      {overview.data && (
+      {stats && (
         <section className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-3" aria-label="Indicadores do MarketPreço">
           {cards.map(({ key, title, icon: Icon }) => (
             <div key={key} className="rounded-xl border bg-card p-4 shadow-card">
               <Icon className="mb-2 h-5 w-5 text-[#075aab]" aria-hidden="true" />
-              <p className="text-2xl font-bold tabular-nums">{Number(overview.data[key]).toLocaleString("pt-BR")}</p>
+              <p className="text-2xl font-bold tabular-nums">{Number(stats[key]).toLocaleString("pt-BR")}</p>
               <p className="mt-1 text-xs text-muted-foreground">{title}</p>
             </div>
           ))}
