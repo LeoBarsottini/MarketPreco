@@ -27,11 +27,16 @@ const cards = [
 
 function AdminPage() {
   const { user } = Route.useRouteContext();
+  return <AdminConsole userId={user.id} />;
+}
+
+/** Isolated view makes permission guarding testable without a live login. */
+export function AdminConsole({ userId }: { userId: string }) {
   const permission = useQuery({
-    queryKey: ["is-admin", user.id],
+    queryKey: ["is-admin", userId],
     queryFn: async () => {
       const { data, error } = await supabase.rpc("has_role", {
-        _user_id: user.id,
+        _user_id: userId,
         _role: "admin",
       });
       if (error) throw new Error(error.message);
@@ -91,10 +96,10 @@ function AdminPage() {
           <TabsTrigger value="produtos" className="gap-1.5"><Package className="h-4 w-4" /> Produtos</TabsTrigger>
           <TabsTrigger value="usuarios" className="gap-1.5"><Users className="h-4 w-4" /> Usuários</TabsTrigger>
         </TabsList>
-        <TabsContent value="denuncias" className="mt-3"><ModerationPanel userId={user.id} /></TabsContent>
+        <TabsContent value="denuncias" className="mt-3"><ModerationPanel userId={userId} /></TabsContent>
         <TabsContent value="lojas" className="mt-3"><AdminStoresPanel /></TabsContent>
         <TabsContent value="produtos" className="mt-3"><AdminProductsPanel /></TabsContent>
-        <TabsContent value="usuarios" className="mt-3"><AdminMembersPanel currentUserId={user.id} /></TabsContent>
+        <TabsContent value="usuarios" className="mt-3"><AdminMembersPanel currentUserId={userId} /></TabsContent>
       </Tabs>
     </>
   );
