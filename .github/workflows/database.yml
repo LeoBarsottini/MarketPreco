@@ -55,3 +55,11 @@ jobs:
         run: psql -X -v ON_ERROR_STOP=1 -f supabase/migrations/20261028080000_admin_console.sql
       - name: Validar acesso administrativo, moderadores e auditoria
         run: psql -X -v ON_ERROR_STOP=1 -f src/test/sql/admin-assertions.sql
+      - name: Simular permissões anônimas excessivas históricas
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -c "GRANT ALL ON TABLE public.profiles, public.user_roles, public.stores, public.products, public.shopping_lists, public.shopping_list_items, public.price_observations, public.price_reports TO anon"
+          psql -X -v ON_ERROR_STOP=1 -c "GRANT EXECUTE ON FUNCTION public.has_role(uuid,public.app_role) TO anon"
+      - name: Aplicar proteção de dados, embalagens e listas finalizadas
+        run: psql -X -v ON_ERROR_STOP=1 -f supabase/migrations/20261028090000_security_hardening.sql
+      - name: Conferir revogações e bloqueio de alterações indevidas
+        run: psql -X -v ON_ERROR_STOP=1 -f src/test/sql/security-hardening-assertions.sql
