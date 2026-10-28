@@ -69,7 +69,7 @@ SET search_path = ''
 AS $body$
 DECLARE
   v_actor uuid := auth.uid();
-  v_exists boolean;
+  v_changed bigint;
 BEGIN
   IF v_actor IS NULL OR NOT public.has_role(v_actor, 'admin'::public.app_role) THEN
     RAISE EXCEPTION 'Acesso restrito a administradores.' USING ERRCODE = '42501';
@@ -93,13 +93,13 @@ BEGIN
     INSERT INTO public.user_roles (user_id, role)
     VALUES (_target_id, 'moderator'::public.app_role)
     ON CONFLICT (user_id, role) DO NOTHING;
-    GET DIAGNOSTICS v_exists = ROW_COUNT;
+    GET DIAGNOSTICS v_changed = ROW_COUNT;
   ELSE
     DELETE FROM public.user_roles
     WHERE user_id = _target_id AND role = 'moderator'::public.app_role;
-    GET DIAGNOSTICS v_exists = ROW_COUNT;
+    GET DIAGNOSTICS v_changed = ROW_COUNT;
   END IF;
-  IF v_exists THEN
+  IF v_changed > 0 THEN
     INSERT INTO public.admin_role_audit (actor_id, target_id, action)
     VALUES (v_actor, _target_id, CASE WHEN _enabled THEN 'grant_moderator' ELSE 'revoke_moderator' END);
   END IF;
