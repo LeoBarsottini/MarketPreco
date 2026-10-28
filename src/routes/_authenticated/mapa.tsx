@@ -14,6 +14,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { loadMapLibre, type MarketMap } from "@/lib/maplibre-loader";
 
 type PriceRow = Database["public"]["Functions"]["public_prices_for_product"]["Returns"][number];
 
@@ -24,46 +25,6 @@ export const Route = createFileRoute("/_authenticated/mapa")({
   ] }),
   component: MapPage,
 });
-
-type MapInstance = {
-  remove: () => void;
-  addControl: (control: unknown) => void;
-  fitBounds: (bounds: [[number, number], [number, number]], options: { padding: number; maxZoom: number }) => void;
-};
-type MarkerInstance = { setLngLat: (coord: [number, number]) => MarkerInstance; setPopup: (popup: unknown) => MarkerInstance; addTo: (map: MapInstance) => MarkerInstance };
-type MapLibreGlobal = {
-  Map: new (options: { container: HTMLElement; style: string; center: [number, number]; zoom: number }) => MapInstance;
-  Marker: new (options: { color: string }) => MarkerInstance;
-  Popup: new (options: { offset: number }) => { setText: (text: string) => unknown };
-  NavigationControl: new () => unknown;
-};
-declare global { interface Window { maplibregl?: MapLibreGlobal } }
-
-const MAPLIBRE_VERSION = "5.6.1";
-const SCRIPT_ID = "marketpreco-maplibre";
-const CSS_ID = "marketpreco-maplibre-css";
-let loading: Promise<MapLibreGlobal> | undefined;
-
-function loadMapLibre(): Promise<MapLibreGlobal> {
-  if (window.maplibregl) return Promise.resolve(window.maplibregl);
-  if (loading) return loading;
-  loading = new Promise<MapLibreGlobal>((resolve, reject) => {
-    if (!document.getElementById(CSS_ID)) {
-      const link = document.createElement("link");
-      link.id = CSS_ID;
-      link.rel = "stylesheet";
-      link.href = `https://cdn.jsdelivr.net/npm/maplibre-gl@${MAPLIBRE_VERSION}/dist/maplibre-gl.css`;
-      document.head.appendChild(link);
-    }
-    const script = document.createElement("script");
-    script.id = SCRIPT_ID;
-    script.src = `https://cdn.jsdelivr.net/npm/maplibre-gl@${MAPLIBRE_VERSION}/dist/maplibre-gl.js`;
-    script.onload = () => window.maplibregl ? resolve(window.maplibregl) : reject(new Error("Biblioteca de mapa indisponível."));
-    script.onerror = () => reject(new Error("Não foi possível carregar o mapa. Confira a conexão."));
-    document.head.appendChild(script);
-  }).catch((error: unknown) => { loading = undefined; document.getElementById(SCRIPT_ID)?.remove(); throw error; });
-  return loading;
-}
 
 type LocatedStore = Store & { latitude: number; longitude: number };
 
@@ -80,7 +41,7 @@ function StoreMap({ stores, prices, productSelected }: { stores: LocatedStore[];
   useEffect(() => {
     if (!element.current || stores.length === 0) return;
     let cancelled = false;
-    let map: MapInstance | undefined;
+    let map: MarketMap | undefined;
     loadMapLibre().then((lib) => {
       if (cancelled || !element.current) return;
       const first = stores[0]!;
