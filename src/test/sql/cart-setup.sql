@@ -103,3 +103,10 @@ ALTER TABLE public.stores ADD COLUMN longitude double precision;
 ALTER TABLE public.products ADD COLUMN barcode text;
 ALTER TABLE public.products ADD COLUMN package_size numeric;
 ALTER TABLE public.products ADD COLUMN package_unit text;
+
+-- Colunas de auditoria de contribuições exigidas pela migração de limites.
+ALTER TABLE public.stores ADD COLUMN created_by uuid REFERENCES auth.users(id);
+ALTER TABLE public.stores ADD COLUMN created_at timestamptz NOT NULL DEFAULT now();
+ALTER TABLE public.products ADD COLUMN created_by uuid REFERENCES auth.users(id);
+ALTER TABLE public.products ADD COLUMN created_at timestamptz NOT NULL DEFAULT now();
+ALTER TABLE public.price_observations ADD COLUMN created_at timestamptz NOT NULL DEFAULT now();
