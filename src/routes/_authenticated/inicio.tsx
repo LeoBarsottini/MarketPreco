@@ -6,8 +6,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { listsQuery, productLabel } from "@/lib/queries";
 import { computeTotals, formatBRL } from "@/lib/money";
 import { AddItemDialog } from "@/components/AddItemDialog";
-import { ModerationPanel } from "@/components/ModerationPanel";
-import { MODERATION_ENABLED } from "@/lib/feature-flags";
 import { Button } from "@/components/ui/button";
 import { LogOut, Plus, ScanBarcode, MapPin, ListChecks, PackageSearch, Store, History, Search, ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -142,7 +140,6 @@ function Home() {
           </li>
         ))}
       </ul>
-      {MODERATION_ENABLED && <ModerationPanel userId={user.id} />}
       <AddItemDialog open={adding} onOpenChange={setAdding} />
     </>
   );
