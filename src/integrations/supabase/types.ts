@@ -336,6 +336,31 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_dashboard_overview: {
+        Args: Record<string, never>
+        Returns: {
+          stores_count: number
+          products_count: number
+          contributors_count: number
+          observations_count: number
+          reports_pending: number
+          stores_without_coordinates: number
+        }[]
+      }
+      admin_list_members: {
+        Args: Record<string, never>
+        Returns: {
+          user_id: string
+          display_name: string | null
+          created_at: string
+          is_admin: boolean
+          is_moderator: boolean
+        }[]
+      }
+      admin_set_moderator: {
+        Args: { _target_id: string; _enabled: boolean }
+        Returns: boolean
+      }
       report_price_observation: {
         Args: { _observation_id: string; _reason: string; _details?: string | null }
         Returns: string
