@@ -19,7 +19,7 @@ nem testes completos de sessões em Android/iOS com contas distintas.
 | SEC-02 | Alta (integridade de produto) | `productLabel` removia zeros inteiros finais: embalagem de 500 g aparecia como 5 g e 1000 ml como 1 ml. | **Corrigido** em `src/lib/queries.ts`, com 8 testes de regressão. |
 | SEC-03 | Média/alta (integridade de SKU) | O proprietário de um produto pode mudar o código de barras e o tamanho da embalagem via atualização direta, mesmo após existir preço registrado. | Gatilho de proteção criado, testado isoladamente; **pendente banco real**. |
 | SEC-04 | Média (histórico de compras) | A interface desativa edição de uma lista concluída, mas a política RLS de `shopping_list_items` só considera propriedade, não o status. A API direta permite alteração enquanto a lista está concluída. | Gatilho que bloqueia inserção/edição/exclusão em listas concluídas criado e testado; **pendente banco real**. Reabertura explícita continua possível. |
-| SEC-05 | Média (supply chain) | MapLibre e Tesseract.js são carregados como scripts remotos do jsDelivr, sem SRI identificado e sem uma CSP específica verificada. Código remoto executa no contexto de sessão do app. | **Pendente:** empacotar localmente ou aplicar verificação de integridade e uma CSP compatível com TanStack Start/Lovable. |
+| SEC-05 | Média (supply chain) | MapLibre e Tesseract.js ainda são carregados como scripts remotos do jsDelivr, sem SRI identificado e sem uma CSP específica verificada. | **Mitigado parcialmente:** um único carregador de MapLibre evita carregamentos duplicados e define prazo de espera. **Pendente:** empacotar localmente ou usar SRI e uma CSP compatível. |
 | SEC-06 | Média (abuso) | O código permite cadastramento colaborativo de preços, produtos e lojas; não foi identificada limitação de taxa da aplicação nem processo completo para lojas/produtos falsos. Controles de provedor não foram auditados. | **Pendente:** limites por usuário, bloqueio de spam, revisão de duplicatas, monitoramento e testes de carga. |
 | SEC-07 | Média (privacidade/operação) | Não foi validado fluxo completo de exclusão/exportação de dados, retenção, política de privacidade e resposta a abuso/incidentes (LGPD). | **Pendente de produto e jurídico** antes de abrir inscrições públicas. |
 | SEC-08 | Homologação | Testes automatizados cobrem funções isoladas; ainda faltam cenários reais com duas contas, múltiplos dispositivos, câmera/OCR e concorrência no ambiente publicado. | **Pendente**. |
@@ -57,6 +57,27 @@ nem testes completos de sessões em Android/iOS com contas distintas.
   pelo limite temporário de ações do Lovable; o provedor confirmou que
   **essa migração não foi executada**. Não afirmar que o banco real já
   possui essas proteções. O código de formatação já foi atualizado no GitHub.
+
+## Complementações de código sem uso do banco (28/10/2026)
+
+- Scanner: consentimento explícito antes de solicitar a câmera, parada após
+  primeiro GTIN válido, fallback manual e testes automatizados.
+- Cadastros de lojas e produtos: validação compartilhada de nomes, GTIN,
+  embalagem, UF e coordenadas antes de salvar; testes de regressão.
+- Pesquisa: entradas de usuários são sanitizadas antes de compor
+  expressões de filtro PostgREST, com testes de neutralização.
+- Mapa: carregador compartilhado entre mapa principal e seletor de loja,
+  para evitar duplicar a execução de script remoto.
+- Pré-lançamento: meta robots `noindex` e `robots.txt` restringem indexação
+  de busca; não equivalem a controle de acesso.
+- Dependências: Dependabot passa a propor atualizações semanais de Bun e
+  GitHub Actions. Atualizações ainda exigem revisão e testes antes do merge.
+- Privacidade: elaborado checklist de fluxo de dados, direitos do usuário e
+  retenção em `docs/PRIVACIDADE-PRE-LANCAMENTO.md`, **não é documento
+  legal pronto para publicação**.
+
+Estas melhorias não executaram migrações nem criaram usuários ou preços.
+A pendência de segurança no banco principal permanece.
 
 ## Critérios para avançar
 
