@@ -1,5 +1,4 @@
-import { useEffect, useRef, useState } from "react";
-import { priceLabelImageError } from "@/lib/ocr-image-validation";
+import { useRef, useState } from "react";
 import { Camera, LoaderCircle } from "lucide-react";
 import { formatBRL } from "@/lib/money";
 import { extractPriceCandidates } from "@/lib/price-ocr";
@@ -8,73 +7,57 @@ type OcrWorker = {
   recognize: (image: File) => Promise<{ data: { text: string } }>;
   terminate: () => Promise<unknown>;
 };
-type OcrEngine = { createWorker: (language: string) => Promise<OcrWorker> };
+type OcrEngine = { createWorker: (
+  language: string, oem: number, options: {
+    workerPath: string;
+    corePath: string;
+    langPath: string;
+    workerBlobURL: boolean;
+  },
+) => Promise<OcrWorker> };
 
-declare global {
-  interface Window {
-    Tesseract?: OcrEngine;
-  }
-}
-
-const SCRIPT_ID = "marketpreco-tesseract";
-const SCRIPT_SRC = "https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js";
 let enginePromise: Promise<OcrEngine> | undefined;
 
+/**
+ * Tesseract's API is loaded as an application-owned JS chunk. Its worker and
+ * WASM core are copied from pinned npm packages to /vendor/tesseract by our
+ * prebuild script, avoiding execution of remote CDN JavaScript.
+ *
+ * The Portuguese language model is still downloaded from the language-data
+ * provider and cached by Tesseract in the browser (separate from source code).
+ */
 function loadOcr(): Promise<OcrEngine> {
-  if (window.Tesseract) return Promise.resolve(window.Tesseract);
-  if (enginePromise) return enginePromise;
-  enginePromise = new Promise<OcrEngine>((resolve, reject) => {
-    const script = document.createElement("script");
-    script.id = SCRIPT_ID;
-    script.src = SCRIPT_SRC;
-    script.async = true;
-    script.referrerPolicy = "no-referrer";
-    let finished = false;
-    const complete = (error?: Error) => {
-      if (finished) return;
-      finished = true;
-      window.clearTimeout(timeout);
-      script.removeEventListener("load", loaded);
-      script.removeEventListener("error", failed);
-      if (error) reject(error);
-      else if (window.Tesseract) resolve(window.Tesseract);
-      else reject(new Error("O recurso de OCR não foi iniciado."));
-    };
-    const loaded = () => complete();
-    const failed = () => complete(new Error("Não foi possível carregar o reconhecimento de texto."));
-    const timeout = window.setTimeout(() => complete(new Error("O leitor de etiqueta demorou demais para carregar.")), 20000);
-    script.addEventListener("load", loaded);
-    script.addEventListener("error", failed);
-    document.head.appendChild(script);
-  }).catch((error: unknown) => {
-    enginePromise = undefined;
-    document.getElementById(SCRIPT_ID)?.remove();
-    throw error;
-  });
+  if (!enginePromise) {
+    enginePromise = import("tesseract.js")
+      .then((module) => module as unknown as OcrEngine)
+      .catch((error: unknown) => {
+        enginePromise = undefined;
+        throw new Error("Não foi possível iniciar o reconhecimento de texto.", { cause: error });
+      });
+  }
   return enginePromise;
 }
 
+const LOCAL_OCR_DIRECTORY = "/vendor/tesseract";
+const LANGUAGE_DATA_URL = "https://tessdata.projectnaptha.com/4.0.0";
 export function PriceLabelOCR({ onSelect }: { onSelect: (price: string) => void }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [text, setText] = useState("");
   const [candidates, setCandidates] = useState<number[]>([]);
   const processing = useRef(false);
-  const mounted = useRef(false);
-
-  useEffect(() => {
-    mounted.current = true;
-    return () => { mounted.current = false; };
-  }, []);
 
   async function analyze(file: File) {
     if (processing.current) return;
     setError(null);
     setText("");
     setCandidates([]);
-    const imageError = priceLabelImageError(file);
-    if (imageError) {
-      setError(imageError);
+    if (!file.type.startsWith("image/")) {
+      setError("Escolha uma foto de etiqueta (JPG, PNG ou outro formato de imagem).");
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      setError("Imagem grande demais. Utilize uma foto com até 8 MB.");
       return;
     }
     processing.current = true;
@@ -82,21 +65,23 @@ export function PriceLabelOCR({ onSelect }: { onSelect: (price: string) => void 
     let worker: OcrWorker | undefined;
     try {
       const ocr = await loadOcr();
-      if (!mounted.current) return;
-      worker = await ocr.createWorker("por");
-      if (!mounted.current) return;
+      worker = await ocr.createWorker("por", 1, {
+        workerPath: new URL(`${LOCAL_OCR_DIRECTORY}/worker.min.js`, window.location.origin).href,
+        corePath: new URL(LOCAL_OCR_DIRECTORY, window.location.origin).href,
+        langPath: LANGUAGE_DATA_URL,
+        workerBlobURL: false,
+      });
       const recognized = await worker.recognize(file);
-      if (!mounted.current) return;
       const extracted = recognized.data.text.trim();
       setText(extracted);
       setCandidates(extractPriceCandidates(extracted));
       if (!extracted) setError("Nenhum texto encontrado. Digite o valor manualmente.");
     } catch {
-      if (mounted.current) setError("Não foi possível reconhecer a etiqueta. Confira sua conexão ou digite o preço.");
+      setError("Não foi possível reconhecer a etiqueta. Confira sua conexão ou digite o preço.");
     } finally {
       if (worker) await worker.terminate().catch(() => undefined);
       processing.current = false;
-      if (mounted.current) setBusy(false);
+      setBusy(false);
     }
   }
 
@@ -120,7 +105,7 @@ export function PriceLabelOCR({ onSelect }: { onSelect: (price: string) => void 
         }}
       />
       <p className="mt-2 text-xs text-muted-foreground">
-        A foto é processada no navegador e não é salva na lista. O reconhecimento exige baixar recursos adicionais e pode falhar. Confirme sempre o preço na etiqueta.
+        A foto é processada no navegador e não é salva na lista. O modelo de português pode ser baixado na primeira utilização. Confira sempre o preço sugerido na etiqueta.
       </p>
       {busy && (
         <p className="mt-3 flex items-center gap-2 text-sm" role="status">

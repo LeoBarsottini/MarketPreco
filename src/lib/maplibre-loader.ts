@@ -1,4 +1,6 @@
-/** Shared MapLibre loader. No map implementation is loaded during SSR. */
+import "maplibre-gl/dist/maplibre-gl.css";
+
+/** Shared MapLibre loader. Maps are initialized exclusively in the browser. */
 export interface MarketMap {
   remove: () => void;
   on: (event: "click", handler: (event: { lngLat: { lat: number; lng: number } }) => void) => void;
@@ -20,70 +22,24 @@ export interface MapLibreRuntime {
   NavigationControl: new () => unknown;
 }
 
-declare global {
-  interface Window {
-    maplibregl?: MapLibreRuntime;
-  }
-}
-
-const VERSION = "5.6.1";
-const SCRIPT = `https://cdn.jsdelivr.net/npm/maplibre-gl@${VERSION}/dist/maplibre-gl.js`;
-const CSS = `https://cdn.jsdelivr.net/npm/maplibre-gl@${VERSION}/dist/maplibre-gl.css`;
-const SCRIPT_ID = "marketpreco-maplibre";
-const CSS_ID = "marketpreco-maplibre-css";
 let pending: Promise<MapLibreRuntime> | undefined;
 
 /**
- * Shared loader prevents a second third-party script from being injected when
- * both the store picker and general map are mounted. Error resets permit retry.
- * Note: external script execution still requires a local-bundle/SRI follow-up.
+ * The npm module is split by the Vite bundler, cached per session and served
+ * from this application's own origin. No runtime JS or CSS is injected from
+ * a third-party CDN. Map styles/tiles remain externally hosted.
  */
 export function loadMapLibre(): Promise<MapLibreRuntime> {
-  if (typeof window === "undefined") return Promise.reject(new Error("Mapa disponível apenas no navegador."));
-  if (window.maplibregl) return Promise.resolve(window.maplibregl);
-  if (pending) return pending;
-
-  pending = new Promise<MapLibreRuntime>((resolve, reject) => {
-    if (!document.getElementById(CSS_ID)) {
-      const css = document.createElement("link");
-      css.id = CSS_ID;
-      css.rel = "stylesheet";
-      css.href = CSS;
-      css.referrerPolicy = "no-referrer";
-      document.head.appendChild(css);
-    }
-    const existing = document.getElementById(SCRIPT_ID) as HTMLScriptElement | null;
-    const script = existing ?? document.createElement("script");
-    if (!existing) {
-      script.id = SCRIPT_ID;
-      script.src = SCRIPT;
-      script.async = true;
-      script.referrerPolicy = "no-referrer";
-    }
-    let settled = false;
-    const finish = (error?: Error) => {
-      if (settled) return;
-      settled = true;
-      window.clearTimeout(timeout);
-      script.removeEventListener("load", loaded);
-      script.removeEventListener("error", failed);
-      if (error) reject(error);
-      else if (window.maplibregl) resolve(window.maplibregl);
-      else reject(new Error("Biblioteca do mapa indisponível."));
-    };
-    const loaded = () => finish();
-    const failed = () => finish(new Error("Não foi possível carregar o mapa."));
-    const timeout = window.setTimeout(
-      () => finish(new Error("O mapa demorou demais para carregar. Tente novamente.")), 15000,
-    );
-    script.addEventListener("load", loaded);
-    script.addEventListener("error", failed);
-    if (!existing) document.head.appendChild(script);
-    if (window.maplibregl) finish();
-  }).catch((error: unknown) => {
-    pending = undefined;
-    document.getElementById(SCRIPT_ID)?.remove();
-    throw error;
-  });
+  if (typeof window === "undefined") {
+    return Promise.reject(new Error("Mapa disponível apenas no navegador."));
+  }
+  if (!pending) {
+    pending = import("maplibre-gl")
+      .then((lib) => lib as unknown as MapLibreRuntime)
+      .catch((error: unknown) => {
+        pending = undefined;
+        throw new Error("Não foi possível iniciar o mapa. Verifique a conexão.", { cause: error });
+      });
+  }
   return pending;
 }
