@@ -40,7 +40,7 @@ jobs:
       PGPASSWORD: ci_ephemeral_only
       PGDATABASE: marketpreco_test
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Montar esquema isolado
         run: psql -X -v ON_ERROR_STOP=1 -f src/test/sql/cart-setup.sql
       - name: Aplicar migração transacional
