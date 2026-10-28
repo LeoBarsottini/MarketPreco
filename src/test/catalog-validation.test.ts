@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalizedProduct, normalizedStore } from "@/lib/catalog-validation";
+import { normalizedProduct, normalizedStore, sanitizeCatalogSearch } from "@/lib/catalog-validation";
 
 const product = { name: "  Leite   integral ", brand: " Marca  A ", size: "1000", unit: "ml", barcode: "7891234567895" };
 const store = { name: "Mercado", chain: "", address: "Rua Exemplo, 10", neighborhood: "", city: "São Paulo", state: "sp" };
@@ -36,6 +36,12 @@ describe("validações do catálogo antes de salvar", () => {
     expect(() => normalizedStore(store, { lat: 120, lng: -46 })).toThrow(/Localização inválida/);
     expect(() => normalizedStore({ ...store, address: "X" }, null)).toThrow(/Endereço/);
     expect(() => normalizedStore({ ...store, city: " " }, null)).toThrow(/Cidade/);
+  });
+  it("neutraliza operadores e curingas na pesquisa do catálogo", () => {
+    expect(sanitizeCatalogSearch("  Água   de coco (1L),name.ilike.%  ")).toBe("Água de coco 1L name ilike");
+    expect(sanitizeCatalogSearch(",,,%%%()")).toBe("");
+    expect(sanitizeCatalogSearch("Leite integral").length).toBeGreaterThan(2);
+    expect(sanitizeCatalogSearch("a".repeat(500))).toHaveLength(60);
   });
   it("permite loja sem localização confirmada", () => {
     expect(normalizedStore(store, null)).toMatchObject({ latitude: null, longitude: null });
