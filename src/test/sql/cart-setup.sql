@@ -95,3 +95,6 @@ CREATE TABLE public.profiles (
 );
 INSERT INTO public.profiles (id, display_name)
 SELECT id, 'Usuário de teste' FROM auth.users;
+
+ALTER TABLE public.stores ADD COLUMN latitude double precision;
+ALTER TABLE public.stores ADD COLUMN longitude double precision;
