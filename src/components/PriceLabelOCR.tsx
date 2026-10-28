@@ -7,40 +7,39 @@ type OcrWorker = {
   recognize: (image: File) => Promise<{ data: { text: string } }>;
   terminate: () => Promise<unknown>;
 };
-type OcrEngine = { createWorker: (language: string) => Promise<OcrWorker> };
+type OcrEngine = { createWorker: (
+  language: string, oem: number, options: {
+    workerPath: string;
+    corePath: string;
+    langPath: string;
+    workerBlobURL: boolean;
+  },
+) => Promise<OcrWorker> };
 
-declare global {
-  interface Window {
-    Tesseract?: OcrEngine;
-  }
-}
-
-const SCRIPT_ID = "marketpreco-tesseract";
-const SCRIPT_SRC = "https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js";
 let enginePromise: Promise<OcrEngine> | undefined;
 
+/**
+ * Tesseract's API is loaded as an application-owned JS chunk. Its worker and
+ * WASM core are copied from pinned npm packages to /vendor/tesseract by our
+ * prebuild script, avoiding execution of remote CDN JavaScript.
+ *
+ * The Portuguese language model is still downloaded from the language-data
+ * provider and cached by Tesseract in the browser (separate from source code).
+ */
 function loadOcr(): Promise<OcrEngine> {
-  if (window.Tesseract) return Promise.resolve(window.Tesseract);
-  if (enginePromise) return enginePromise;
-  enginePromise = new Promise<OcrEngine>((resolve, reject) => {
-    const script = document.createElement("script");
-    script.id = SCRIPT_ID;
-    script.src = SCRIPT_SRC;
-    script.async = true;
-    script.onload = () => {
-      if (window.Tesseract) resolve(window.Tesseract);
-      else reject(new Error("O recurso de OCR não foi iniciado."));
-    };
-    script.onerror = () => reject(new Error("Não foi possível carregar o reconhecimento de texto."));
-    document.head.appendChild(script);
-  }).catch((error: unknown) => {
-    enginePromise = undefined;
-    document.getElementById(SCRIPT_ID)?.remove();
-    throw error;
-  });
+  if (!enginePromise) {
+    enginePromise = import("tesseract.js")
+      .then((module) => module as unknown as OcrEngine)
+      .catch((error: unknown) => {
+        enginePromise = undefined;
+        throw new Error("Não foi possível iniciar o reconhecimento de texto.", { cause: error });
+      });
+  }
   return enginePromise;
 }
 
+const LOCAL_OCR_DIRECTORY = "/vendor/tesseract";
+const LANGUAGE_DATA_URL = "https://tessdata.projectnaptha.com/4.0.0";
 export function PriceLabelOCR({ onSelect }: { onSelect: (price: string) => void }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -66,7 +65,12 @@ export function PriceLabelOCR({ onSelect }: { onSelect: (price: string) => void 
     let worker: OcrWorker | undefined;
     try {
       const ocr = await loadOcr();
-      worker = await ocr.createWorker("por");
+      worker = await ocr.createWorker("por", 1, {
+        workerPath: new URL(`${LOCAL_OCR_DIRECTORY}/worker.min.js`, window.location.origin).href,
+        corePath: new URL(LOCAL_OCR_DIRECTORY, window.location.origin).href,
+        langPath: LANGUAGE_DATA_URL,
+        workerBlobURL: false,
+      });
       const recognized = await worker.recognize(file);
       const extracted = recognized.data.text.trim();
       setText(extracted);
@@ -101,7 +105,7 @@ export function PriceLabelOCR({ onSelect }: { onSelect: (price: string) => void 
         }}
       />
       <p className="mt-2 text-xs text-muted-foreground">
-        A foto é processada no navegador e não é salva na lista. O reconhecimento exige baixar recursos adicionais e pode falhar. Confirme sempre o preço na etiqueta.
+        A foto é processada no navegador e não é salva na lista. O modelo de português pode ser baixado na primeira utilização. Confira sempre o preço sugerido na etiqueta.
       </p>
       {busy && (
         <p className="mt-3 flex items-center gap-2 text-sm" role="status">
