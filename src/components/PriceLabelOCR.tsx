@@ -1,4 +1,5 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { priceLabelImageError } from "@/lib/ocr-image-validation";
 import { Camera, LoaderCircle } from "lucide-react";
 import { formatBRL } from "@/lib/money";
 import { extractPriceCandidates } from "@/lib/price-ocr";
@@ -27,11 +28,23 @@ function loadOcr(): Promise<OcrEngine> {
     script.id = SCRIPT_ID;
     script.src = SCRIPT_SRC;
     script.async = true;
-    script.onload = () => {
-      if (window.Tesseract) resolve(window.Tesseract);
+    script.referrerPolicy = "no-referrer";
+    let finished = false;
+    const complete = (error?: Error) => {
+      if (finished) return;
+      finished = true;
+      window.clearTimeout(timeout);
+      script.removeEventListener("load", loaded);
+      script.removeEventListener("error", failed);
+      if (error) reject(error);
+      else if (window.Tesseract) resolve(window.Tesseract);
       else reject(new Error("O recurso de OCR não foi iniciado."));
     };
-    script.onerror = () => reject(new Error("Não foi possível carregar o reconhecimento de texto."));
+    const loaded = () => complete();
+    const failed = () => complete(new Error("Não foi possível carregar o reconhecimento de texto."));
+    const timeout = window.setTimeout(() => complete(new Error("O leitor de etiqueta demorou demais para carregar.")), 20000);
+    script.addEventListener("load", loaded);
+    script.addEventListener("error", failed);
     document.head.appendChild(script);
   }).catch((error: unknown) => {
     enginePromise = undefined;
@@ -47,18 +60,21 @@ export function PriceLabelOCR({ onSelect }: { onSelect: (price: string) => void 
   const [text, setText] = useState("");
   const [candidates, setCandidates] = useState<number[]>([]);
   const processing = useRef(false);
+  const mounted = useRef(false);
+
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; };
+  }, []);
 
   async function analyze(file: File) {
     if (processing.current) return;
     setError(null);
     setText("");
     setCandidates([]);
-    if (!file.type.startsWith("image/")) {
-      setError("Escolha uma foto de etiqueta (JPG, PNG ou outro formato de imagem).");
-      return;
-    }
-    if (file.size > 8 * 1024 * 1024) {
-      setError("Imagem grande demais. Utilize uma foto com até 8 MB.");
+    const imageError = priceLabelImageError(file);
+    if (imageError) {
+      setError(imageError);
       return;
     }
     processing.current = true;
@@ -66,18 +82,21 @@ export function PriceLabelOCR({ onSelect }: { onSelect: (price: string) => void 
     let worker: OcrWorker | undefined;
     try {
       const ocr = await loadOcr();
+      if (!mounted.current) return;
       worker = await ocr.createWorker("por");
+      if (!mounted.current) return;
       const recognized = await worker.recognize(file);
+      if (!mounted.current) return;
       const extracted = recognized.data.text.trim();
       setText(extracted);
       setCandidates(extractPriceCandidates(extracted));
       if (!extracted) setError("Nenhum texto encontrado. Digite o valor manualmente.");
     } catch {
-      setError("Não foi possível reconhecer a etiqueta. Confira sua conexão ou digite o preço.");
+      if (mounted.current) setError("Não foi possível reconhecer a etiqueta. Confira sua conexão ou digite o preço.");
     } finally {
       if (worker) await worker.terminate().catch(() => undefined);
       processing.current = false;
-      setBusy(false);
+      if (mounted.current) setBusy(false);
     }
   }
 
